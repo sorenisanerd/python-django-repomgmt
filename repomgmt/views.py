@@ -25,6 +25,12 @@ from repomgmt.models import Architecture, BuildNode, BuildRecord
 from repomgmt.models import ChrootTarball, Repository, Series
 
 
+class NewArchitectureForm(ModelForm):
+    class Meta:
+        model = Architecture
+        fields = ("name", "builds_arch_all")
+
+
 class NewRepositoryForm(ModelForm):
     class Meta:
         model = Repository
@@ -35,6 +41,15 @@ class NewSeriesForm(ModelForm):
     class Meta:
         model = Series
         fields = ("name", "numerical_version", "base_ubuntu_series", "state")
+
+
+def new_architecture_form(request):
+    if request.method == 'POST':
+        form = NewArchitectureForm(request.POST)
+    else:
+        form = NewArchitectureForm()
+    return render(request, 'new_architecture_form.html',
+                           {'form': form})
 
 
 def new_repository_form(request):
@@ -55,6 +70,20 @@ def new_series_form(request, repository_name):
     return render(request, 'new_series_form.html',
                            {'form': form,
                             'repository': repository})
+
+
+def architecture_list(request):
+    if request.method == 'POST':
+        if request.POST['action'] == 'create':
+            form = NewArchitectureForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect(reverse('architecture_list'))
+            else:
+                return new_architecture_form(request)
+
+    return render(request, 'architectures.html',
+                          {'architectures': Architecture.objects.all()})
 
 
 def repository_list(request):

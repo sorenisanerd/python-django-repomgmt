@@ -28,6 +28,12 @@ urlpatterns = patterns('',
     # Builds
     url(r'^builds/$', 'repomgmt.views.build_list', name='build_list'),
 
+    # Architectures
+    url(r'^architectures/$', 'repomgmt.views.architecture_list',
+                              name='architecture_list'),
+    url(r'^architectures/new/$', 'repomgmt.views.new_architecture_form',
+                                 name='new_architecture_form'),
+
     # Tarballs
     url(r'^tarballs/$', 'repomgmt.views.tarball_list', name='tarball_list'),
 

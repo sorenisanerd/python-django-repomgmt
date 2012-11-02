@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<p>These are the various architectures we support.<a href="{% url new_architecture_form %}" class="btn pull-right">Create new</a></p>
+<table class="table table-striped">
+  <tr>
+    <th>Architecture</th>
+    <th>Build arch:all packages</th>
+  </tr>
+{% for architecture in architectures %}
+  <tr>
+    <td>{{ architecture.name }}</a></td>
+    <td>{{ architecture.builds_arch_all }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}
