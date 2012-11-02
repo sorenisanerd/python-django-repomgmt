@@ -1,0 +1,52 @@
+class repomgmt($user = 'ubuntu') {
+  package { ["python-pip",
+             "devscripts",
+             "sbuild",
+             "git",
+             "apache2"]:
+    provider => "apt",
+    ensure => "installed",
+  }
+
+  package { ["django",
+             "django-celery",
+             "django-tastypie",
+             "python-novaclient"]:
+    provider => "pip",
+    ensure => "installed",
+    require => Package['python-pip']
+  }
+
+  exec { "/usr/bin/pip install -e git+http://github.com/sorenh/python-django-repomgmt#egg=django-repomgmt":
+    require => [Package['git'], Package['python-pip']]
+  }
+
+  user { "$user":
+    ensure => "present",
+    managehome => true,
+    groups => "sbuild",
+    require => Package['sbuild']
+  }
+
+  exec { "/usr/local/bin/django-admin.py startproject buildd":
+    creates => "/home/$user/buildd",
+    user => $user
+  } ->
+  file { "/home/$user/buildd/buildd/settings.py":
+    content => template('repomgmt/settings.py.erb'),
+    owner => $user
+  } ->
+  exec { "/usr/bin/python /home/$user/buildd/manage.py syncdb --noinput":
+    user => $user,
+    refreshonly => true
+  }
+
+  file { "/etc/apache2/conf.d/repomgmt.conf":
+    content => template('repomgmt/apache.conf.erb'),
+    owner => $user,
+    require => Package["apache2"]
+  } ->
+  exec { "/etc/init.d/apache2 reload":
+    refreshonly => true
+  }
+}
