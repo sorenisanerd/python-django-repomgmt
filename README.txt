@@ -47,6 +47,11 @@ BASE_REPO_DIR
     The base directory where the repositories should be kept.
     Each repository will be represented by a subdirectory here.
 
+TESTING
+
+    If set to True, repomgmt will be in testing mode and won't write anything
+    to disk.
+
 It is also expected that django-celery is already configured. This should be as simple as adding something like this near the end of your settings.py:
 
     INSTALLED_APPS += ("djcelery", )
@@ -54,3 +59,5 @@ It is also expected that django-celery is already configured. This should be as 
     djcelery.setup_loader()
 
     BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
+You also need to add the django.contrib.humanize app to INSTALLED_APPS.
