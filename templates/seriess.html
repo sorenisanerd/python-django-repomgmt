@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<p>These are the various series maintained in the {{ repository.name }} repository.<a href="{% url new_series_form repository_name=repository.name %}" class="btn pull-right">Create new</a></p>
+<table class="table table-striped">
+  <tr>
+    <th>Series</th>
+    <th>Based on</th>
+    <th>State</th>
+  </tr>
+{% for series in repository.series_set.all %}
+  <tr>
+    <td><a href="{{ series.get_absolute_url }}">{{ series.name }}</a></td>
+    <td>{{ series.base_ubuntu_series }}</td>
+    <td>{{ series.get_state_display }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}
+

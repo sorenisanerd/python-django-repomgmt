@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+{% if msg %}
+<div class="alert">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  {{ msg }}
+</div>
+{% endif %}
+<p>These are the bare tarballs used by the builders to performs "clean-room" package builds. This ensures reproducability.</p>
+<form class="form-horizontal" action="{% url tarball_list %}" method="post">
+{% csrf_token %}
+<table class="table table-striped">
+  <tr>
+    <th>Repository</th>
+    <th>Series</th>
+    <th>Architecture</th>
+    <th>Last refresh</th>
+    <th>Download</th>
+    <th>Build</th>
+  </tr>
+{% for repository, seriess in tarballs.iteritems %}
+  {% for series, architectures in seriess.iteritems %}
+    {% for architecture, tarball in architectures.iteritems %}
+    <tr{% if not tarball.last_refresh %} class="warning"{% endif %}>
+    <td>{{ repository.name }}</td>
+    <td>{{ series.name }}</td>
+    <td>{{ architecture.name }}</td>
+    <td>
+      {% if not tarball.last_refresh %}No tarball yet.{% else %}{{ tarball.last_refresh|naturaltime }}{% endif %} ({{ tarball.get_state_display }})
+    </td>
+    <td><a href="{{ tarball.download_link }}" class="btn">Download it</a></td>
+    <td><input type="submit" value="Build it" name="{{ tarball.series.name }}-{{ tarball.series.repository.name }}-{{ tarball.architecture.name }}" class="btn btn-primary" /></td>
+  </tr>
+{% endfor %}
+  {% endfor %}
+{% endfor %}
+</table>
+{% endblock %}

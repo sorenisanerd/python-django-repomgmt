@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+        <p>This is an overview over current build nodes. Build nodes are dynamically created and destroyed based on current load, so sometimes you will see many builders here, sometimes none at all.</p>
+<table class="table table-striped">
+  <tr>
+    <th>Name</th>
+    <th>Current task</th>
+    <th>Expected finish time of current task</th>
+  </tr>
+{% for node in build_nodes %}
+  <tr>
+    <td>{{ node.name }}</td>
+    <td>None</td>
+    <td>N/A</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

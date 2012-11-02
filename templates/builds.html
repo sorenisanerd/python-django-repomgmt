@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <p>This is an overview over current builds.</p>
+<table class="table table-striped">
+  <tr>
+    <th>Repository</th>
+    <th>Series</th>
+    <th>Package name</th>
+    <th>Package version</th>
+    <th>Architecture</th>
+    <th>State</th>
+  </tr>
+{% for build in build_records %}
+  <tr>
+    <td>{{ build.series.repository.name.capitalize }}</td>
+    <td>{{ build.series.name.capitalize }}</td>
+    <td>{{ build.source_package_name }}</td>
+    <td>{{ build.version }}</td>
+    <td>{{ build.architecture }}</td>
+    <td>{{ build.get_state_display }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

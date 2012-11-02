@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<p>Tracked upstream packagesin the {{ series.repository.name }} repository, {{ series.name }} series.
+<form action="{% url promote_series %}" method="post">
+  {% csrf_token %}
+  <input type="hidden" name="repository" value="{{ series.repository.name }}" />
+  <input type="hidden" name="series" value="{{ series.name }}" />
+  <input class="btn pull-right" type="submit" value="Promote from proposed to stable" />
+</form></p>
+<table class="table table-striped table-condensed">
+  <tr>
+    <th>Package name</th>
+    <th>Stable version</th>
+    <th>Proposed version</th>
+    <th>Queued version</th>
+  </tr>
+{% for package, version_info in pkg_data.iteritems %}
+  <tr>
+    <td>{{ package }}</td>
+    <td>{{ version_info.stable }}</td>
+    <td>{{ version_info.proposed }}</td>
+    <td>{{ version_info.queued }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

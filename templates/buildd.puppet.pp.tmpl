@@ -1,0 +1,33 @@
+package { 'sbuild': }
+
+user { "ubuntu":
+    groups => "sbuild",
+    require => Package['sbuild']
+}
+
+exec { "fetch-tarball":
+    command => "/usr/bin/wget -O /home/ubuntu/chroot.tgz {{ build_record.get_tarball.download_link }}",
+    creates => "/home/ubuntu/chroot.tgz"
+}
+
+file { "/home/ubuntu/chroot.tgz":
+    require => Exec["fetch-tarball"],
+    owner => "root",
+    group => "root",
+}
+
+file { "/etc/schroot/chroot.d'":
+    ensure => "directory",
+    require => Package['sbuild']
+}
+
+file { "/etc/schroot/chroot.d/sbuild":
+    content => '[buildchroot]
+description=buildchroot
+groups=sbuild,root,admin
+root-groups=sbuild,root,admin
+source-root-users=sbuild,root,admin
+source-root-groups=sbuild,root,admin
+type=file
+file=/home/ubuntu/chroot.tgz
+' }

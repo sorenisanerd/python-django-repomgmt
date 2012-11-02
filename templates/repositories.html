@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<p>These are the various repositories we maintain.<a href="{% url new_repository_form %}" class="btn pull-right">Create new</a></p>
+<table class="table table-striped">
+  <tr>
+    <th>Repository</th>
+    <th>Point of Contact</th>
+  </tr>
+{% for repository in repositories %}
+  <tr>
+          <td><a href="{% url series_list repository_name=repository.name %}">{{ repository.name }}</a></td>
+    <td>{{ repository.contact }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

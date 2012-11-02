@@ -1,0 +1,27 @@
+- fields: {signing_key_id: "12345678"}
+  model: repomgmt.repository
+  pk: cisco
+- fields: {}
+  model: repomgmt.architecture
+  pk: i386
+- fields: {}
+  model: repomgmt.architecture
+  pk: amd64
+- fields: {source_package_name: foo,
+           version: 1.2-3ubuntu4,
+           architecture: i386,
+           state: 8,
+           priority: 100,
+           created: !!timestamp '2012-10-17 00:03:37.106539+00:00',
+           series: 1}
+  model: repomgmt.buildrecord
+  pk: 1
+- fields: {source_package_name: foo,
+           version: 1.2-3ubuntu4,
+           architecture: amd64,
+           state: 8,
+           priority: 100,
+           created: !!timestamp '2012-10-17 00:03:37.106539+00:00',
+           series: 1}
+  model: repomgmt.buildrecord
+  pk: 2

@@ -1,0 +1,60 @@
+- fields: {cloud: test_cloud, name: keypair1, private_key: '-----BEGIN RSA PRIVATE KEY-----
+
+      MIIEpAIBAAKCAQEAykdA4u9LYInhBP7NJbvxZjGVqUrJzGONdKktjookvDLqpLwf
+
+      FFfesK7Kviqg+C/m8EftO+0bB0UwwFF6U7odSRfx6NuJDNKjpLa/vMSPCu4iZSTi
+
+      ythZTy3hPYVY42kdUhCgvFgjTVA8qqDJstVpikU5QDmJkLpsKOR8YOsr1ssIg6Ah
+
+      3CUKpxkIWKQCozB8kp25rvb9mugEeRUcFg2GyuLs7u+3gpPIxy/b2ignu9sHKb7e
+
+      ekFNoKRdKMC8Iqww7dTKR9X0uXhXnzYs0Rb61PnZW+SRtOrdlY7pABLaz/SJ5cZG
+
+      TmnRaXj9YeNEn5es6v1BY7mg92qEnfT4WtXYPQIDAQABAoIBACsu0Pxhh58BcGdn
+
+      mhYvLFbbyQ6OJ8yZiC5am54tgbAn0o3+l0f5hlIDzsaQRTMWzt+HC29arAV+UO0N
+
+      t+a9+diL4xoKHBT/tu3IEeDTuZHkyrT7DeuuCkrsCYTfvd02qIrHf/kVe9vagEkQ
+
+      8F5cTx60roc2gVbDZanJNYBfVEmTR33wbRNaydEtWhcR39zwnNS8oIZpuE6/Y57S
+
+      SYV/0e+yvWool+WDk/aP7I9eZIo8CrlVXbV5+IhImEYg6a6XD8oqrUSBiiN48dZw
+
+      5kCnVPsQwj+lMZEt6UBdq3pBbGpfk3eJp1WSiw2sCe9hIW0lIsb/UJeA1YkZpMVQ
+
+      YlrpqeECgYEA55IjkQkMgg5EtD/mZcHk2VPAE/iL+FTdgOEROouo+U+vEVAj+Qq9
+
+      c14RAnurpYSbcUSxYZipqoosCnj4aC3qL3s4Gr5TzoBoKvfzt0Tx2mU7X+GIGKpQ
+
+      NYEZ8Oe42yK/msY8ChgJTKzIneSUl6xduWIm3hYR+lku25/0YOJlV+kCgYEA354I
+
+      hdmhafMIaqGknqPYBSYjNaPJZ3MFldUhY3mSNxbiKFft+kMmbmcEsyPqwKwDIaTd
+
+      DboYDHCjPRnGwgGWzGF+0PaZ+qgJLdqbbVcNqGElvV9dRiY5fTQvqUCuVnvJEshs
+
+      aaQSmK1orCFFEq3VAWt8krcmfP4XGqgqf7uzXTUCgYEAsRtA3m0IRvO4sg7pHExF
+
+      xb1a+ystifkGC8qWzasAyeSapWggixkeufxoj/ib15Rq+h8qdtU2djsE4eGRQsRT
+
+      Bot75mBIYngssyg+Gp29R2YDGhq4ZvzjKXiaqXfgFqEl367bPnERs7W2HaQzzSjD
+
+      6cParCI/D7RjtQ9J7UtZbPkCgYB0oNLnJLPIM4ZvPvFCAEhZnyN8BXm058vA8tEg
+
+      Nbbp3piD3CB1h3JS4I4V9KSqasyTTo4wa5/BVTn+UyRT6UpCPJNM32E910g6TysD
+
+      YwTvjgOF+mgGf0c6ou48w0xqNNORZVEN5BIC6WaPaCbDcECJJgtp5fY/+LIKKC1K
+
+      Q5ZwBQKBgQDlQmDRRuD9DtkOufqWIoSfRTsje9kpfjuRCTC+4LrC/AYH3yMp/85g
+
+      VNfcZ5QZNHW7bsjB+T+oe60qu15cz/TN5+FmrFsppOjiVLJBkMl95OcbI0MUMUum
+
+      6yQ/C7VxWIZSjHhzojrkgBw2EkSkHx4pKYftlgi6tQoqRAoJZSeM4Q==
+
+      -----END RSA PRIVATE KEY-----
+
+      ', public_key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKR0Di70tgieEE/s0lu/FmMZWpSsnMY410qS2OiiS8MuqkvB8UV96wrsq+KqD4L+bwR+077RsHRTDAUXpTuh1JF/Ho24kM0qOktr+8xI8K7iJlJOLK2FlPLeE9hVjjaR1SEKC8WCNNUDyqoMmy1WmKRTlAOYmQumwo5Hxg6yvWywiDoCHcJQqnGQhYpAKjMHySnbmu9v2a6AR5FRwWDYbK4uzu77eCk8jHL9vaKCe72wcpvt56QU2gpF0owLwirDDt1MpH1fS5eFefNizRFvrU+dlb5JG06t2VjukAEtrP9InlxkZOadFpeP1h40Sfl6zq/UFjuaD3aoSd9Pha1dg9
+      soren@francisco
+
+      '}
+  model: repomgmt.keypair
+  pk: 1

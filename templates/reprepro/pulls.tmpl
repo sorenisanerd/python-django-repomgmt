@@ -1,0 +1,7 @@
+{% for series in repository.series_set.all %}Name: {{ series.name }}
+From: {{ series.name }}-proposed
+
+Name: {{ series.name }}-flush
+From: {{ series.name }}-queued
+
+{% endfor %}

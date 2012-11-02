@@ -1,0 +1,7 @@
+allow architectures 'source' by group uploaders
+allow not architectures 'source' by group builders
+
+{% for uploader in repository.uploaders.all %}{% for key in uploader.uploaderkey_set.all %}
+group uploaders add {{ key.key_id }}
+{% endfor %}{% endfor %}
+group builders add {{ settings.BUILDER_KEY_ID }}

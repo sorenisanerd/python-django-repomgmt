@@ -1,0 +1,42 @@
+{% for series in repository.not_closed_series.all %}Origin: {{ repository.name.capitalize }}
+Label: {{ repository.name.capitalize }}
+Suite: {{ series.name }}
+Codename: {{ series.name }}
+Version: {{ series.numerical_version }}
+Architectures: {% for architecture in architectures %}{{ architecture }} {% endfor %}source
+Components: main
+Description: {{ repository.name }} {{ series.name }} (Add-on for Ubuntu {{ series.base_ubuntu_series }})
+SignWith: {{ repository.signing_key_id }}
+Uploaders: uploaders
+Tracking: minimal includelogs
+Pull: {{ series.name }}
+
+Origin: {{ repository.name.capitalize }}
+Label: {{ repository.name.capitalize }}
+Suite: {{ series.name }}-proposed
+Codename: {{ series.name }}-proposed
+Version: {{ series.numerical_version }}
+Architectures: {% for architecture in architectures %}{{ architecture }} {% endfor %}source
+Components: main
+Description: {{ repository.name }} {{ series.name }} (Add-on for Ubuntu {{ series.base_ubuntu_series }}) (staging area)
+SignWith: {{ repository.signing_key_id }}
+Uploaders: uploaders
+Tracking: minimal includelogs
+Pull: {{ series.name }}-flush
+Log:
+ --type=dsc create-build-records.sh
+
+Origin: {{ repository.name.capitalize }}
+Label: {{ repository.name.capitalize }}
+Suite: {{ series.name }}-queued
+Codename: {{ series.name }}-queued
+Version: {{ series.numerical_version }}
+Architectures: source
+Components: main
+Description: {{ repository.name }} {{ series.name }} (Add-on for Ubuntu {{ series.base_ubuntu_series }}) (Queued)
+SignWith: {{ repository.signing_key_id }}
+Uploaders: uploaders
+Tracking: minimal includelogs
+
+{% endfor %}
+

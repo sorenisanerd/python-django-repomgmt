@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<p>Create a new repository</p>
+<form action="{% url repository_list %}" method="post">
+<input type="hidden" name="action" value="create" />
+{% csrf_token %}
+{{ form.as_p }}
+<input class="btn" type="submit" value="Create" />
+</form>
+{% endblock %}
+

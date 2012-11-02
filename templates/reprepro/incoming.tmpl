@@ -1,0 +1,6 @@
+Name: incoming
+IncomingDir: incoming
+Tempdir: tmp
+Permit: unused_files
+Cleanup: unused_files on_error
+Allow: {% for series in repository.series_set.all %}{% if series.state != series.CLOSED %}{{ series.name }}>{{ series.accept_uploads_into }} {% endif %}{% endfor %}

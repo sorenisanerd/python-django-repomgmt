@@ -1,0 +1,3 @@
+- fields: {user_name: test_user, tenant_name: test_tenant, password: test_password, endpoint: "http://example.com/cloud"}
+  model: repomgmt.cloud
+  pk: test_cloud
