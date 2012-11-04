@@ -30,10 +30,15 @@ class repomgmt($user = 'ubuntu') {
 
   exec { "/usr/local/bin/django-admin.py startproject buildd":
     creates => "/home/$user/buildd",
+    cwd => "/home/$user",
     user => $user
   } ->
   file { "/home/$user/buildd/buildd/settings.py":
     content => template('repomgmt/settings.py.erb'),
+    owner => $user
+  } ->
+  file { "/home/$user/buildd/buildd/urls.py":
+    content => template('repomgmt/urls.py.erb'),
     owner => $user
   } ->
   exec { "/usr/bin/python /home/$user/buildd/manage.py syncdb --noinput":
