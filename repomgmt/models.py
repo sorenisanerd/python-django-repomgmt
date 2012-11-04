@@ -108,6 +108,10 @@ class UploaderKey(models.Model):
     key_id = models.CharField(max_length=200, primary_key=True)
     uploader = models.ForeignKey(auth_models.User)
 
+    def save(self):
+        utils.run_cmd(['gpg', '--recv-keys', self.key_id])
+        super(UploaderKey, self).save()
+
     def __unicode__(self):
         return '%s (%s)' % (self.key_id, self.uploader)
 
