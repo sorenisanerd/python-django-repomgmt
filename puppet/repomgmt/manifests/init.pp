@@ -3,7 +3,9 @@ class repomgmt($user = 'ubuntu') {
              "devscripts",
              "sbuild",
              "git",
-             "apache2"]:
+             "apache2",
+             "rabbitmq-server",
+             "ubuntu-dev-tools"]:
     provider => "apt",
     ensure => "installed",
   }
@@ -40,7 +42,7 @@ class repomgmt($user = 'ubuntu') {
   file { "/home/$user/buildd/buildd/urls.py":
     content => template('repomgmt/urls.py.erb'),
     owner => $user
-  } ->
+  } ~>
   exec { "/usr/bin/python /home/$user/buildd/manage.py syncdb --noinput":
     user => $user,
     refreshonly => true
@@ -50,7 +52,7 @@ class repomgmt($user = 'ubuntu') {
     content => template('repomgmt/apache.conf.erb'),
     owner => $user,
     require => Package["apache2"]
-  } ->
+  } ~>
   exec { "/etc/init.d/apache2 reload":
     refreshonly => true
   }
