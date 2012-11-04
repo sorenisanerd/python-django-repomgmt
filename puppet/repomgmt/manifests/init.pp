@@ -5,7 +5,9 @@ class repomgmt($user = 'ubuntu') {
              "git",
              "apache2",
              "rabbitmq-server",
-             "ubuntu-dev-tools"]:
+             "ubuntu-dev-tools",
+             "reprepro",
+             "haveged"]:
     provider => "apt",
     ensure => "installed",
   }
