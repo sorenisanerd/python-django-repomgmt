@@ -28,7 +28,7 @@ import time
 import tty
 
 from django.conf import settings
-from django.contrib import auth
+from django.contrib.auth import models as auth_models
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.loader import render_to_string
@@ -47,7 +47,7 @@ from repomgmt import utils
 class Repository(models.Model):
     name = models.CharField(max_length=200, primary_key=True)
     signing_key_id = models.CharField(max_length=200)
-    uploaders = models.ManyToManyField(auth.models.User)
+    uploaders = models.ManyToManyField(auth_models.User)
     contact = models.EmailField()
 
     class Meta:
@@ -106,7 +106,7 @@ class Repository(models.Model):
 
 class UploaderKey(models.Model):
     key_id = models.CharField(max_length=200, primary_key=True)
-    uploader = models.ForeignKey(auth.models.User)
+    uploader = models.ForeignKey(auth_models.User)
 
     def __unicode__(self):
         return '%s (%s)' % (self.key_id, self.uploader)
