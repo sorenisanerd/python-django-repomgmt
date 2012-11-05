@@ -453,6 +453,7 @@ class Cloud(models.Model):
                                          service_type="compute",
                                          no_cache=True,
                                          **kwargs)
+            self._client.cloud = self
 
         return self._client
 
@@ -581,8 +582,8 @@ class BuildNode(models.Model):
             keypair = cloud.keypair_set.all()[0]
 
         name = cls.get_unique_buildnode_name(cl)
-        flavor = utils.get_flavor_by_name(cl, cl.flavor_name)
-        image = utils.get_image_by_regex(cl, cl.image_name)
+        flavor = utils.get_flavor_by_name(cl, cl.cloud.flavor_name)
+        image = utils.get_image_by_regex(cl, cl.cloud.image_name)
 
         srv = cl.servers.create(name, image, flavor, key_name=keypair.name)
         bn = BuildNode(name=name, cloud=cloud, cloud_node_id=srv.id)
