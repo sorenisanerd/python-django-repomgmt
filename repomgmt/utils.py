@@ -27,7 +27,7 @@ def run_cmd(cmd, input=None):
         return mock_data.run_cmd(cmd, input)
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
-    stdout, stderr = proc.communicate()
+    stdout, stderr = proc.communicate(input)
     return stdout
 
 
