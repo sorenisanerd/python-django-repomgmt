@@ -61,3 +61,18 @@ It is also expected that django-celery is already configured. This should be as 
     BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 You also need to add the django.contrib.humanize app to INSTALLED_APPS.
+
+= Quickly establishing a development environment =
+
+A simple Puppet module is included, mostly intended for development purposes.
+Fire up a fresh, clean Ubuntu VM and log in.
+
+(This is a dump of my copy/paste file for this, it's not meant as a script)
+
+sudo apt-get -y install git puppet
+git clone https://github.com/sorenh/python-django-repomgmt
+sudo -H puppet apply --modulepath python-django-repomgmt/puppet python-django-repomgmt/puppet/repomgmt/tests/install.pp 
+cd buildd
+screen
+python manage.py runserver 0.0.0.0:8000
+
