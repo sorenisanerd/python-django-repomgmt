@@ -134,7 +134,7 @@ class GPGKey(object):
             arg = '--export'
 
         out = utils.run_cmd(['gpg', '-a', '--export-options',
-                             'export-clean', arg, self.key_id]),
+                             'export-clean', arg, self.key_id])
 
         if 'nothing exported' in out:
             raise Exception('Key with ID %s not found' % self.key_id)
