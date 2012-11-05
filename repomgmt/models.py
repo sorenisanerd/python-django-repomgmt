@@ -82,7 +82,10 @@ class Repository(models.Model):
     def write_configuration(self):
         confdir = '%s/conf' % (self.reprepro_dir,)
 
-        basedir = os.path.normpath(os.path.join(os.path.dirname(__file__),
+        settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
+        settings_module = __import__(settings_module_name)
+        settings_module_dir = os.path.dirname(settings_module.__file__)
+        basedir = os.path.normpath(os.path.join(settings_module_dir,
                                                 os.pardir))
 
         if not os.path.exists(confdir):
