@@ -159,7 +159,7 @@ import urllib
 floating_ip = urllib.urlopen('http://169.254.169.254/2009-04-04/meta-data/public-ipv4').read()
 
 BASE_URL = "http://%s:8000" % (floating_ip,)
-APT_REPO_BASE_URL = "http://%s/repos" % (floating_ip,)
+APT_REPO_BASE_URL = "http://%s/repos/" % (floating_ip,)
 BASE_TARBALL_URL = 'http://%s/tarballs/' % (floating_ip,)
 
 BASE_REPO_DIR = '/home/<%= user %>/repos'
