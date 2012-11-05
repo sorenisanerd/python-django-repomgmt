@@ -81,6 +81,7 @@ class Repository(models.Model):
 
     def write_configuration(self):
         confdir = '%s/conf' % (self.reprepro_dir,)
+        incomdingdir = '%s/conf' % (self.reprepro_dir,)
 
         settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
         settings_module = __import__(settings_module_name)
@@ -90,6 +91,9 @@ class Repository(models.Model):
 
         if not os.path.exists(confdir):
             os.makedirs(confdir)
+
+        if not os.path.exists(incomdingdir):
+            os.makedirs(incomdingdir)
 
         for f in ['distributions', 'incoming', 'options', 'pulls',
                   'uploaders', 'create-build-records.sh']:
