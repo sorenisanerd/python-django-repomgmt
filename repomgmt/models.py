@@ -413,13 +413,21 @@ class BuildRecord(models.Model):
 
     @classmethod
     def pick_build(cls, build_node):
+        """Picks the highest priority build"""
         while True:
             builds = cls.objects.filter(state=cls.NEEDS_BUILDING)
             try:
                 next_build = builds.order_by('-priority')[0]
             except IndexError:
                 return None
-            matches = cls.objects.filter(id=next_build.id, build_node__isnull=True).update(build_node=build_node)
+            # This ensures that assigning a build node is atomic,x
+            # since the filter only matches if noone else has done
+            # a similar update.
+            matches = cls.objects.filter(id=next_build.id,
+                                         build_node__isnull=True
+                                        ).update(build_node=build_node)
+            # If we didn't find a single match, someone else must have
+            # grabbed the build and we start over
             if matches != 1:
                 continue
             else:
