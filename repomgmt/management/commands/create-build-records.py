@@ -65,16 +65,13 @@ class Command(BaseCommand):
 
         known_archs = dict([(arch.name, arch) for arch in Architecture.objects.all()])
 
-        if action == 'add':
-            dsc = os.environ['REPREPO_CAUSING_FILE']
-        else:
-            dsc = None
-            for f in files:
-                if f.endswith('.dsc'):
-                    dsc = f
-                    break
-            if dsc is None:
-                raise Exception('Adding dsc with .dsc file?!?')
+        dsc = None
+        for f in files:
+            if f.endswith('.dsc'):
+                dsc = f
+                break
+        if dsc is None:
+            raise Exception('Adding dsc without .dsc file?!?')
 
         dsc = parse_dsc_file(os.path.join(repository.reprepro_outdir, dsc))
 
