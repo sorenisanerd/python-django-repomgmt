@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 from django.core.management.base import BaseCommand
-from repomgmt.models import BuildNode
+from repomgmt.models import BuildNode, BuildRecord
 import repomgmt.utils
 
 class Command(BaseCommand):
@@ -24,4 +24,8 @@ class Command(BaseCommand):
     help = 'Processes the build queue'
 
     def handle(self, **options):
-        repomgmt.utils.process_build_queue()
+        if BuildRecord.pending_build_count() > 0:
+            bn = BuildNode.start_new()
+            br = BuildRecord.pick_build(bn)
+            bn.prepare(br)
+            bn.build(br)
