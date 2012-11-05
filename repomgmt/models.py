@@ -432,6 +432,9 @@ class Cloud(models.Model):
     user_name = models.CharField(max_length=200)
     tenant_name = models.CharField(max_length=200)
     password = models.CharField(max_length=200)
+    region = models.CharField(max_length=200, blank=True)
+    flavor_name = models.CharField(max_length=200)
+    image_name = models.CharField(max_length=200)
 
     def __unicode__(self):
         return self.name
@@ -439,12 +442,17 @@ class Cloud(models.Model):
     @property
     def client(self):
         if not hasattr(self, '_client'):
+            kwargs = {}
+            if self.region:
+                kwargs['region_name'] = self.region
+
             self._client = client.Client(self.user_name,
                                          self.password,
                                          self.tenant_name,
                                          self.endpoint,
                                          service_type="compute",
-                                         no_cache=True)
+                                         no_cache=True,
+                                         **kwargs)
 
         return self._client
 
@@ -549,7 +557,7 @@ class BuildNode(models.Model):
                 return name
 
     @classmethod
-    def get_unique_buildnode_name(cls):
+    def get_unique_buildnode_name(cls, cl):
         existing_server_names = [srv.name for srv in cl.servers.list()]
         old_build_node_names = [bn.name for bn in BuildNode.objects.all()]
         names_to_avoid = set(existing_server_names + old_build_node_names)
@@ -573,8 +581,8 @@ class BuildNode(models.Model):
             keypair = cloud.keypair_set.all()[0]
 
         name = cls.get_unique_buildnode_name(cl)
-        flavor = utils.get_flavor_by_name(cl, 'm1.medium')
-        image = utils.get_image_by_regex(cl, 'Ubuntu Precise')
+        flavor = utils.get_flavor_by_name(cl, cl.flavor_name)
+        image = utils.get_image_by_regex(cl, cl.image_name)
 
         srv = cl.servers.create(name, image, flavor, key_name=keypair.name)
         bn = BuildNode(name=name, cloud=cloud, cloud_node_id=srv.id)
