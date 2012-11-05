@@ -81,7 +81,7 @@ class Repository(models.Model):
 
     def write_configuration(self):
         confdir = '%s/conf' % (self.reprepro_dir,)
-        incomdingdir = '%s/conf' % (self.reprepro_dir,)
+        incomdingdir = '%s/incoming' % (self.reprepro_dir,)
 
         settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
         settings_module = __import__(settings_module_name)
