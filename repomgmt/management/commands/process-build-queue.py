@@ -17,7 +17,7 @@
 #
 from django.core.management.base import BaseCommand
 from repomgmt.models import BuildNode, BuildRecord
-import repomgmt.utils
+
 
 class Command(BaseCommand):
     args = ''
