@@ -506,28 +506,29 @@ class BuildNode(models.Model):
     def __unicode__(self):
         return self.name
 
+    def _run_cmd(self, cmd, *args, **kwargs):
+        for data in self.run_cmd(cmd, *args, **kwargs):
+            print data
+
     def prepare(self, build_record):
         self.state = self.BOOTING
         self.save()
         try:
-            def _run_cmd(cmd, *args, **kwargs):
-                for data in self.run_cmd(cmd, *args, **kwargs):
-                    pass
             while True:
                 try:
-                    _run_cmd('id')
+                    self._run_cmd('id')
                     break
                 except Exception, e:
                     print e
                 time.sleep(5)
             self.state = self.PREPARING
             self.save()
-            _run_cmd('sudo apt-get update')
-            _run_cmd('sudo DEBIAN_FRONTEND=noninteractive '
-                     'apt-get -y --force-yes install puppet')
-            _run_cmd('sudo wget -O puppet.pp %s/puppet/%s/' %
+            self._run_cmd('sudo apt-get update')
+            self._run_cmd('sudo DEBIAN_FRONTEND=noninteractive '
+                          'apt-get -y --force-yes install puppet')
+            self._run_cmd('sudo wget -O puppet.pp %s/puppet/%s/' %
                                           (settings.BASE_URL, build_record.id))
-            _run_cmd('sudo -H puppet apply --verbose puppet.pp')
+            self._run_cmd('sudo -H puppet apply --verbose puppet.pp')
             self.state = self.READY
             self.save()
         except Exception, e:
@@ -538,18 +539,18 @@ class BuildNode(models.Model):
         self.save()
         try:
             series = build_record.series
-            utils.run_cmd('mkdir build')
+            self._run_cmd('mkdir build')
             sbuild_cmd = ('cd build; sbuild -d %s ' % (series.name,) +
                           '--arch=%s ' % build_record.architecture.name +
                           '-c buildchroot ' +
                           '-n -k%s ' % series.repository.signing_key_id)
 
-            if build_record.architecture.name == 'i386':
+            if build_record.architecture.builds_arch_all:
                 sbuild_cmd += '-A '
 
             sbuild_cmd += ('%s_%s' % (build_record.source_package_name,
                                       build_record.version))
-            utils.run_cmd(sbuild_cmd)
+            self._run_cmd(sbuild_cmd)
         except Exception:
             pass
         self.delete()
