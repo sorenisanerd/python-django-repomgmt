@@ -556,7 +556,7 @@ class BuildNode(models.Model):
 
             public_key_data = self._run_cmd('gpg -a --export %s' %
                                             (self.signing_key_id))
-            utils.run_cmd(['gpg', '--import', input=public_key_data)
+            utils.run_cmd(['gpg', '--import'], input=public_key_data)
 
             self.state = self.READY
             self.save()
