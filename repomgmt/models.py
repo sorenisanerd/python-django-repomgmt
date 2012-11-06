@@ -80,6 +80,9 @@ class Repository(models.Model):
     def not_closed_series(self):
         return self.series_set.exclude(state=Series.CLOSED)
 
+    def build_nodes(self):
+        return BuildNode.objects.filter(series__repository=self)
+
     def write_configuration(self):
         confdir = '%s/conf' % (self.reprepro_dir,)
         incomdingdir = '%s/incoming' % (self.reprepro_dir,)
@@ -572,7 +575,7 @@ class BuildNode(models.Model):
             sbuild_cmd = ('cd build; sbuild -d %s ' % (series.name,) +
                           '--arch=%s ' % build_record.architecture.name +
                           '-c buildchroot ' +
-                          '-n -k%s ' % series.repository.signing_key_id)
+                          '-n -k%s ' % self.signing_key_id)
 
             if build_record.architecture.builds_arch_all:
                 sbuild_cmd += '-A '
