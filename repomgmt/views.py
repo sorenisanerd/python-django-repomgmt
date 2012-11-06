@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
@@ -156,8 +157,8 @@ def promote_series(request):
 def puppet_manifest(request, build_record_id):
     build_record = BuildRecord.objects.get(pk=build_record_id)
     return render(request, 'buildd.puppet.pp.tmpl',
-                          {'repositories': Repository.objects.all(),
-                           'build_record': build_record},
+                          {'build_record': build_record,
+                           'settings': settings},
                           content_type='text/plain')
 
 

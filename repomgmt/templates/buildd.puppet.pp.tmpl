@@ -32,4 +32,30 @@ file=/home/ubuntu/chroot.tgz
 ',
 } ->
 exec { "/usr/bin/sbuild-update --keygen":
-}
+} ->
+file { "/etc/schroot/setup.d/50apt":
+  mode => "0755",
+  content => '#!/bin/sh
+set -e
+
+. "$SETUP_DATA_DIR/common-data"
+. "$SETUP_DATA_DIR/common-functions"
+
+if [ -f "$CHROOT_SCRIPT_CONFIG" ]; then
+    . "$CHROOT_SCRIPT_CONFIG"
+elif [ "$STATUS" = "ok" ]; then
+    fatal "script-config file '$CHROOT_SCRIPT_CONFIG' does not exist"
+fi
+
+if [ "$VERBOSE" = "verbose" ]; then
+  CP_VERBOSE="--verbose"
+fi
+
+if [ $STAGE = "setup-start" ] || [ $STAGE = "setup-recover" ]; then
+    echo "deb     {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }} main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+    echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }} main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+    echo "deb     {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+    echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+fi
+
+' }
