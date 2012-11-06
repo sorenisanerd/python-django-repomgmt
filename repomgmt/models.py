@@ -589,7 +589,6 @@ class BuildNode(models.Model):
             self._run_cmd('cd build; dput return *.changes')
         except Exception:
             pass
-        self.delete()
 
         self.state = self.SHUTTING_DOWN
         self.save()
