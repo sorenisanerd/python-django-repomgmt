@@ -415,7 +415,8 @@ class BuildRecord(models.Model):
     def pick_build(cls, build_node):
         """Picks the highest priority build"""
         while True:
-            builds = cls.objects.filter(state=cls.NEEDS_BUILDING)
+            builds = cls.objects.filter(state=cls.NEEDS_BUILDING,
+                                        build_node__isnull=True)
             try:
                 next_build = builds.order_by('-priority')[0]
             except IndexError:
