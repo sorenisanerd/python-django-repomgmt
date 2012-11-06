@@ -74,6 +74,10 @@ class Repository(models.Model):
     def reprepro_outdir(self):
         return '%s/%s' % (settings.BASE_PUBLIC_REPO_DIR, self.name)
 
+    @property
+    def reprepro_incomingdir(self):
+        return '%s/%s' % (settings.BASE_INCOMING_DIR, self.name)
+
     def process_incoming(self):
         self._reprepro('processincoming', 'incoming')
 
@@ -85,7 +89,6 @@ class Repository(models.Model):
 
     def write_configuration(self):
         confdir = '%s/conf' % (self.reprepro_dir,)
-        incomdingdir = '%s/incoming' % (self.reprepro_dir,)
 
         settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
         settings_module = __import__(settings_module_name)
@@ -94,7 +97,7 @@ class Repository(models.Model):
                                                 os.pardir))
 
         for d in [settings.BASE_PUBLIC_REPO_DIR,
-                  confdir, incomdingdir]:
+                  confdir, self.reprepro_incomdingdir]:
             if not os.path.exists(d):
                 os.makedirs(d)
 

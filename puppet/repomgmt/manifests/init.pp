@@ -7,7 +7,8 @@ class repomgmt($user = 'ubuntu') {
              "rabbitmq-server",
              "ubuntu-dev-tools",
              "reprepro",
-             "haveged"]:
+             "haveged",
+             "vsftpd"]:
     provider => "apt",
     ensure => "installed",
   }
@@ -50,6 +51,27 @@ class repomgmt($user = 'ubuntu') {
     refreshonly => true
   }
 
+  file { "/etc/vsftpd.conf":
+    content => template('repomgmt/vsftpd.conf.erb'),
+    mode => 0644,
+    owner => root,
+    group => root,
+    require => Package[vsftpd],
+    notify => Exec["reload-vsftpd"]
+  } 
+
+  file { "/srv/ftp/incoming":
+    owner => $user,
+    group => ftp,
+    mode => "2701",
+    require => Package[vsftpd],
+  }
+
+  exec { "reload-vsftpd":
+    command => "/sbin/restart vsftpd",
+    refreshonly => true
+  }
+
   file { "/etc/apache2/conf.d/repomgmt.conf":
     content => template('repomgmt/apache.conf.erb'),
     owner => $user,
@@ -57,5 +79,5 @@ class repomgmt($user = 'ubuntu') {
   } ~>
   exec { "/etc/init.d/apache2 reload":
     refreshonly => true
-  }
+  } 
 }
