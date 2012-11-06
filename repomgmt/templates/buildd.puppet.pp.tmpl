@@ -21,15 +21,15 @@ file { "/etc/schroot/chroot.d'":
     ensure => "directory",
 } ->
 file { "/etc/schroot/chroot.d/sbuild":
-    content => '[buildchroot]
+    content => "[buildchroot]
 description=buildchroot
 groups=sbuild,root,admin
 root-groups=sbuild,root,admin
 source-root-users=sbuild,root,admin
 source-root-groups=sbuild,root,admin
 type=file
-file=/home/ubuntu/chroot.tgz
-',
+file=$tarball
+",
 } ->
 exec { "/usr/bin/sbuild-update --keygen":
 } ->
