@@ -408,15 +408,18 @@ class BuildRecord(models.Model):
                 (self.source_package_name, self.version, self.architecture))
 
     @classmethod
+    def pending_builds(cls):
+        return cls.objects.filter(state=cls.NEEDS_BUILDING,
+                                        build_node__isnull=True)
+    @classmethod
     def pending_build_count(cls):
-        return cls.objects.filter(state=cls.NEEDS_BUILDING).count()
+        return cls.pending_builds.count()
 
     @classmethod
     def pick_build(cls, build_node):
         """Picks the highest priority build"""
         while True:
-            builds = cls.objects.filter(state=cls.NEEDS_BUILDING,
-                                        build_node__isnull=True)
+            builds = cls.pending_builds()
             try:
                 next_build = builds.order_by('-priority')[0]
             except IndexError:
