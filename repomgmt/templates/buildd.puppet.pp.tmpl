@@ -32,5 +32,5 @@ file=/home/ubuntu/chroot.tgz
 ',
     require => File["/etc/schroot/chroot.d"]
 } ->
-exec { "/usr/bin/sbuild-update --keygen buildchroot":
+exec { "/usr/bin/sbuild-update --keygen":
 }
