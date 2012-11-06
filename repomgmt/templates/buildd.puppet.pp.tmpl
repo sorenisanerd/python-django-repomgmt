@@ -30,7 +30,6 @@ source-root-groups=sbuild,root,admin
 type=file
 file=/home/ubuntu/chroot.tgz
 ',
-    require => File["/etc/schroot/chroot.d"]
 } ->
 exec { "/usr/bin/sbuild-update --keygen":
 }
