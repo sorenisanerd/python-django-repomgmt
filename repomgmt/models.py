@@ -85,7 +85,7 @@ class Repository(models.Model):
         return self.series_set.exclude(state=Series.CLOSED)
 
     def build_nodes(self):
-        return BuildNode.objects.filter(series__repository=self)
+        return BuildNode.objects.filter(buildrecord__series__repository=self)
 
     def write_configuration(self):
         confdir = '%s/conf' % (self.reprepro_dir,)
