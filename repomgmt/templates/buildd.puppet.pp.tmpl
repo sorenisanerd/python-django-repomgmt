@@ -1,7 +1,7 @@
 $tarball = "/var/lib/schroot/tarballs/chroot.tgz"
 
-package { ['sbuild',
-           'haveged']: } ->
+package { 'haveged': } ->
+package { 'sbuild': } ->
 user { "ubuntu":
     groups => "sbuild",
 } ->
