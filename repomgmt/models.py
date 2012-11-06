@@ -508,7 +508,7 @@ class BuildNode(models.Model):
 
     def _run_cmd(self, cmd, *args, **kwargs):
         for data in self.run_cmd(cmd, *args, **kwargs):
-            print data
+            print data,
 
     def prepare(self, build_record):
         self.state = self.BOOTING
