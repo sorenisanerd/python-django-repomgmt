@@ -60,7 +60,7 @@ fi
 
 ' }
 
-file { "/home/$user/.dput.cf":
+file { "/home/ubuntu/.dput.cf":
   content => '[return]
 method   = ftp
 fqdn     = {{ settings.FTP_IP }}
@@ -68,5 +68,5 @@ passive_ftp = 0
 login    = anonymous
 incoming = {{ settings.FTP_BASE_PATH }}/{{ build_record.series.repository.name }}/
 ',
-  owner => $user
+  owner => ubuntu
 }
