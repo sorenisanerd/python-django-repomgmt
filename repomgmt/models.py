@@ -117,6 +117,8 @@ class Repository(models.Model):
             if path.endswith('.sh'):
                 os.chmod(path, 0755)
 
+        self._reprepro('export')
+
 
 class UploaderKey(models.Model):
     key_id = models.CharField(max_length=200, primary_key=True)
@@ -566,6 +568,7 @@ class BuildNode(models.Model):
 
             self.state = self.READY
             self.save()
+            build_record.series.repository.write_configuration()
         except Exception, e:
             self.delete()
 
