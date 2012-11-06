@@ -97,7 +97,7 @@ class Repository(models.Model):
                                                 os.pardir))
 
         for d in [settings.BASE_PUBLIC_REPO_DIR,
-                  confdir, self.reprepro_incomdingdir]:
+                  confdir, self.reprepro_incomingdir]:
             if not os.path.exists(d):
                 os.makedirs(d)
 
