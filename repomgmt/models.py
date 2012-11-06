@@ -24,6 +24,7 @@ import StringIO
 import socket
 import sys
 import termios
+import textwrap
 import time
 import tty
 
@@ -506,13 +507,17 @@ class BuildNode(models.Model):
     cloud_node_id = models.CharField(max_length=200)
     state = models.SmallIntegerField(default=NEW,
                                      choices=NODE_STATES)
+    signing_key_id = models.CharField(max_length=200)
 
     def __unicode__(self):
         return self.name
 
     def _run_cmd(self, cmd, *args, **kwargs):
+        out = ''
         for data in self.run_cmd(cmd, *args, **kwargs):
+            out += data
             print data,
+        return out
 
     def prepare(self, build_record):
         self.state = self.BOOTING
@@ -533,6 +538,26 @@ class BuildNode(models.Model):
             self._run_cmd('sudo wget -O puppet.pp %s/puppet/%s/' %
                                           (settings.BASE_URL, build_record.id))
             self._run_cmd('sudo -H puppet apply --verbose puppet.pp')
+            self._run_cmd(textwrap.dedent('''\n
+                          cat <<EOF > keygen.param
+                          Key-Type: 1
+                          Key-Length: 4096
+                          Subkey-Type: ELG-E
+                          Subkey-Length: 4096
+                          Name-Real: %s signing key
+                          Expire-Date: 0
+                          %%commit
+                          EOF''' % (self,)))
+            out = self._run_cmd('''gpg --gen-key --batch keygen.param''')
+            for l in out.split('\n'):
+                if l.startswith('gpg: key '):
+                    key_id = l.split(' ')[2]
+            self.signing_key_id = key_id
+
+            public_key_data = self._run_cmd('gpg -a --export %s' %
+                                            (self.signing_key_id))
+            utils.run_cmd(['gpg', '--import', input=public_key_data)
+
             self.state = self.READY
             self.save()
         except Exception, e:
@@ -615,6 +640,9 @@ class BuildNode(models.Model):
 
     def delete(self):
         self.cloud_server.delete()
+        if self.signing_key_id:
+            utils.run_cmd(['gpg', '--batch', '--yes',
+                           '--delete-keys', self.signing_key_id])
         super(BuildNode, self).delete()
 
     @property
