@@ -586,6 +586,7 @@ class BuildNode(models.Model):
             sbuild_cmd += ('%s_%s' % (build_record.source_package_name,
                                       build_record.version))
             self._run_cmd(sbuild_cmd)
+            self._run_cmd('cd build; dput return *.changes')
         except Exception:
             pass
         self.delete()

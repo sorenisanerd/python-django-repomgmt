@@ -49,8 +49,20 @@ BASE_REPO_DIR
 
 BASE_PUBLIC_REPO_DIR
 
-    A directory holding symlinks into the public parts of each
-    repository. Useful for exposing through a http server.
+    A directory holding the public parts of the repo.
+
+BASE_INCOMING_DIR
+
+    The base dir used for incoming dirs.
+
+FTP_IP
+
+    IP where builders can send back built packages.
+
+FTP_BASE_PATH
+
+    Base path where packages can be put.
+
 
 TESTING
 

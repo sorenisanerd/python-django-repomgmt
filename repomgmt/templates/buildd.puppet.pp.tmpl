@@ -59,3 +59,14 @@ if [ $STAGE = "setup-start" ] || [ $STAGE = "setup-recover" ]; then
 fi
 
 ' }
+
+file { "/home/$user/.dput.cf":
+  content => '[return]
+method   = ftp
+fqdn     = {{ settings.FTP_IP }}
+passive_ftp = 0
+login    = anonymous
+incoming = {{ settings.FTP_BASE_PATH }}/{{ build_record.series.repository.name }}/
+',
+  owner => $user
+}
