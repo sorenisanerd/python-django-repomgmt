@@ -1,2 +1,8 @@
 Alias /tarballs /var/lib/schroot/tarballs
-Alias /repos /home/<%= user %>/repos
+Alias /repos /home/<%= user %>/public
+
+<Directory /home/<%= user %>/public>
+    Options Indexes
+    Order allow,deny
+    Allow from all
+</Directory>

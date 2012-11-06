@@ -47,6 +47,11 @@ BASE_REPO_DIR
     The base directory where the repositories should be kept.
     Each repository will be represented by a subdirectory here.
 
+BASE_PUBLIC_REPO_DIR
+
+    A directory holding symlinks into the public parts of each
+    repository. Useful for exposing through a http server.
+
 TESTING
 
     If set to True, repomgmt will be in testing mode and won't write anything

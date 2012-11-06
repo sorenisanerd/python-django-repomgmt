@@ -71,7 +71,7 @@ class Repository(models.Model):
 
     @property
     def reprepro_outdir(self):
-        return '%s/repo' % (self.reprepro_dir,)
+        return '%s/%s' % (settings.BASE_PUBLIC_REPO_DIR, self.name)
 
     def process_incoming(self):
         self._reprepro('processincoming', 'incoming')
@@ -89,11 +89,10 @@ class Repository(models.Model):
         basedir = os.path.normpath(os.path.join(settings_module_dir,
                                                 os.pardir))
 
-        if not os.path.exists(confdir):
-            os.makedirs(confdir)
-
-        if not os.path.exists(incomdingdir):
-            os.makedirs(incomdingdir)
+        for d in [settings.BASE_PUBLIC_REPO_DIR,
+                  confdir, incomdingdir]:
+            if not os.path.exists(d):
+                os.makedirs(d)
 
         for f in ['distributions', 'incoming', 'options', 'pulls',
                   'uploaders', 'create-build-records.sh']:
@@ -101,7 +100,8 @@ class Repository(models.Model):
                                  {'repository': self,
                                   'architectures': Architecture.objects.all(),
                                   'settings': settings,
-                                  'basedir': basedir})
+                                  'basedir': basedir,
+                                  'outdir': self.reprepro_outdir})
             path = '%s/%s' % (confdir, f)
 
             with open(path, 'w') as fp:
