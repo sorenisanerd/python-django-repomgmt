@@ -414,7 +414,7 @@ class BuildRecord(models.Model):
                                         build_node__isnull=True)
     @classmethod
     def pending_build_count(cls):
-        return cls.pending_builds.count()
+        return cls.pending_builds().count()
 
     @classmethod
     def pick_build(cls, build_node):
