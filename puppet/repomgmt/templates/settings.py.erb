@@ -157,8 +157,9 @@ LOGGING = {
 TESTING=False
 import urllib
 floating_ip = urllib.urlopen('http://169.254.169.254/2009-04-04/meta-data/public-ipv4').read()
+fixed_ip = urllib.urlopen('http://169.254.169.254/2009-04-04/meta-data/local-ipv4').read()
 
-FTP_IP = floating_ip
+FTP_IP = fixed_ip
 FTP_BASE_PATH = "/incoming"
 BASE_URL = "http://%s:8000" % (floating_ip,)
 APT_REPO_BASE_URL = "http://%s/repos/" % (floating_ip,)
