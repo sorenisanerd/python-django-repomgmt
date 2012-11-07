@@ -35,7 +35,7 @@
     total_run_count: 0
   model: djcelery.periodictask
   pk: 2
--: {builds_arch_all: true}
+- fields: {builds_arch_all: true}
   model: repomgmt.architecture
   pk: i386
 - fields: {builds_arch_all: false}
