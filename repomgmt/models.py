@@ -297,7 +297,7 @@ class ChrootTarball(models.Model):
         return '%s-%s' % (self.series, self.architecture)
 
     def download_link(self):
-        return '%s%s-%s-%s.tgz' % (settings.BASE_TARBALL_URL,
+        return '%s%s-%s.tgz' % (settings.BASE_TARBALL_URL,
                                self.series.name,
                                self.architecture.name)
 
