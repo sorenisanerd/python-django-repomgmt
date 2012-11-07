@@ -61,9 +61,10 @@ class repomgmt($user = 'ubuntu') {
   } 
 
   file { "/srv/ftp/incoming":
+    ensure => directory,
     owner => $user,
     group => ftp,
-    mode => "2701",
+    mode => "2711",
     require => Package[vsftpd],
   }
 
