@@ -4,6 +4,7 @@
 - fields:
     args: '[]'
     crontab: null
+    date_changed: "2012-11-08T06:00:00Z"
     description: ''
     enabled: true
     exchange: null
@@ -21,6 +22,7 @@
 - fields:
     args: '[]'
     crontab: null
+    date_changed: "2012-11-08T06:00:00Z"
     description: ''
     enabled: true
     exchange: null
