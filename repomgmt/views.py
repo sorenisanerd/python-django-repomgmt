@@ -23,7 +23,7 @@ from django.shortcuts import render
 
 from repomgmt import utils, tasks
 from repomgmt.models import Architecture, BuildNode, BuildRecord
-from repomgmt.models import ChrootTarball, Repository, Series,
+from repomgmt.models import ChrootTarball, Repository, Series
 from repomgmt.models import UbuntuSeries
 
 
