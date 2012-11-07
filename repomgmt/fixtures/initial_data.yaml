@@ -1,0 +1,46 @@
+- fields: {every: 5, period: seconds}
+  model: djcelery.intervalschedule
+  pk: 1
+- fields:
+    args: '[]'
+    crontab: null
+    description: ''
+    enabled: true
+    exchange: null
+    expires: null
+    interval: 1
+    kwargs: '{}',
+    last_run_at: null
+    name: process-build-queue
+    queue: null
+    routing_key: null
+    task: repomgmt.tasks.process_build_queue,
+    total_run_count: 0
+  model: djcelery.periodictask
+  pk: 1
+- fields:
+    args: '[]'
+    crontab: null
+    description: ''
+    enabled: true
+    exchange: null
+    expires: null
+    interval: 1
+    kwargs: '{}',
+    last_run_at: null
+    name: process-build-queue
+    queue: null
+    routing_key: null
+    task: repomgmt.tasks.process_incoming,
+    total_run_count: 0
+  model: djcelery.periodictask
+  pk: 2
+-: {builds_arch_all: true}
+  model: repomgmt.architecture
+  pk: i386
+- fields: {builds_arch_all: false}
+  model: repomgmt.architecture
+  pk: amd64
+- fields: {user_name: buildd, tenant_name: buildd, password: HocsAdcotsh6, endpoint: "http://172.29.74.72:5000/v2.0"}
+  model: repomgmt.cloud
+  pk: os10

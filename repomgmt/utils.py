@@ -15,19 +15,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import logging
 import re
 import subprocess
 
 from django.conf import settings
 
+from repomgmt.models import BuildNode, BuildRecord
+
+logger = logging.getLogger(__name__)
+
 
 def run_cmd(cmd, input=None):
+    logger.info('Executing %r with input=%r' % (cmd, input))
     if settings.TESTING:
         from repomgmt import mock_data
         return mock_data.run_cmd(cmd, input)
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     stdout, stderr = proc.communicate(input)
+    logger.debug('%r with input=%r returned %r' % (cmd, input, stdout))
     return stdout
 
 
@@ -42,3 +49,11 @@ def get_flavor_by_name(cl, name):
     for flavor in cl.flavors.list():
         if flavor.name == name:
             return flavor
+
+
+def perform_single_build(self):
+    if BuildRecord.pending_build_count() > 0:
+        bn = BuildNode.start_new()
+        br = BuildRecord.pick_build(bn)
+        bn.prepare(br)
+        bn.build(br)

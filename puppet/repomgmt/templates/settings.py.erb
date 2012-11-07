@@ -182,3 +182,4 @@ BASE_PUBLIC_REPO_DIR = '/home/<%= user %>/public'
 # Enable Celery
 import djcelery
 djcelery.setup_loader()
+CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"

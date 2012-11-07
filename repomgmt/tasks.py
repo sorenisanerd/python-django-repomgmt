@@ -18,7 +18,8 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
-from repomgmt.models import ChrootTarball
+from repomgmt import utils
+from repomgmt.models import ChrootTarball, Repository
 
 logger = get_task_logger(__name__)
 
@@ -41,3 +42,14 @@ def refresh_tarball(tarball_id):
     tb = ChrootTarball.objects.get(pk=tarball_id)
     logger.info('Refreshing %r' % (tb,))
     tb.refresh()
+
+
+@task()
+def process_build_queue():
+    utils.perform_single_build()
+
+
+@task()
+def process_incoming():
+    for repo in Repository.objects.all():
+        repo.process_incoming()
