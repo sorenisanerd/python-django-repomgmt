@@ -21,8 +21,6 @@ import subprocess
 
 from django.conf import settings
 
-from repomgmt.models import BuildNode, BuildRecord
-
 logger = logging.getLogger(__name__)
 
 
@@ -49,6 +47,3 @@ def get_flavor_by_name(cl, name):
     for flavor in cl.flavors.list():
         if flavor.name == name:
             return flavor
-
-
-
