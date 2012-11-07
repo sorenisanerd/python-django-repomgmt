@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def run_cmd(cmd, input=None):
     logger.info('Executing %r with input=%r' % (cmd, input))
-    if settings.TESTING:
+    if settings.TESING:
         from repomgmt import mock_data
         return mock_data.run_cmd(cmd, input)
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -51,9 +51,4 @@ def get_flavor_by_name(cl, name):
             return flavor
 
 
-def perform_single_build(self):
-    if BuildRecord.pending_build_count() > 0:
-        bn = BuildNode.start_new()
-        br = BuildRecord.pick_build(bn)
-        bn.prepare(br)
-        bn.build(br)
+

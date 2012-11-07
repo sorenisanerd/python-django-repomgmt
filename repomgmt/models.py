@@ -407,9 +407,18 @@ class BuildRecord(models.Model):
     def pending_builds(cls):
         return cls.objects.filter(state=cls.NEEDS_BUILDING,
                                         build_node__isnull=True)
+
     @classmethod
     def pending_build_count(cls):
         return cls.pending_builds().count()
+
+    @classmethod
+    def perform_single_build(cls):
+        if cls.pending_build_count() > 0:
+            bn = BuildNode.start_new()
+            br = BuildRecord.pick_build(bn)
+            bn.prepare(br)
+            bn.build(br)
 
     @classmethod
     def pick_build(cls, build_node):

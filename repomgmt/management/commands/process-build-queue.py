@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 from django.core.management.base import BaseCommand
-from repomgmt import utils
+from repomgmt.models import BuildRecord
 
 
 class Command(BaseCommand):
@@ -24,4 +24,4 @@ class Command(BaseCommand):
     help = 'Processes the build queue'
 
     def handle(self, **options):
-        utils.perform_single_build()
+        BuildRecord.perform_single_build()
