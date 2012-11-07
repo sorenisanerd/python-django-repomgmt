@@ -23,7 +23,8 @@ from django.shortcuts import render
 
 from repomgmt import utils, tasks
 from repomgmt.models import Architecture, BuildNode, BuildRecord
-from repomgmt.models import ChrootTarball, Repository, Series
+from repomgmt.models import ChrootTarball, Repository, Series,
+from repomgmt.models import UbuntuSeries
 
 
 class NewArchitectureForm(ModelForm):
@@ -177,9 +178,8 @@ def tarball_list(request):
     if request.method == 'POST':
         for x in request.POST:
             if request.POST[x] == 'Build it':
-                series_name, repository_name, architecture_name = x.split('-')
+                series_name, architecture_name = x.split('-')
                 filter = {'series__name': series_name,
-                          'series__repository__name': repository_name,
                           'architecture__name': architecture_name}
                 tb = ChrootTarball.objects.get(**filter)
                 tb.state = tb.WAITING_TO_BUILD
@@ -188,19 +188,17 @@ def tarball_list(request):
                 request.session['msg'] = 'Refresh triggered'
                 return HttpResponseRedirect(reverse('tarball_list'))
     tarballs = {}
-    for repository in Repository.objects.all():
-        tarballs[repository] = {}
-        for series in repository.series_set.all():
-            tarballs[repository][series] = {}
-            for architecture in Architecture.objects.all():
-                try:
-                    tb = ChrootTarball.objects.get(series=series,
-                                                   architecture=architecture)
-                except ChrootTarball.DoesNotExist:
-                    tb = ChrootTarball(series=series,
-                                       architecture=architecture)
-                    tb.save()
-                tarballs[repository][series][architecture] = tb
+    for ubuntu_series in UbuntuSeries.objects.all():
+        tarballs[ubuntu_series] = {}
+        for architecture in Architecture.objects.all():
+            try:
+                tb = ChrootTarball.objects.get(series=ubuntu_series,
+                                               architecture=architecture)
+            except ChrootTarball.DoesNotExist:
+                tb = ChrootTarball(series=ubuntu_series,
+                                   architecture=architecture)
+                tb.save()
+            tarballs[ubuntu_series][architecture] = tb
 
     msg = request.session.pop('msg', None)
     return render(request, 'tarballs.html',
