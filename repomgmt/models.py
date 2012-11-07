@@ -173,7 +173,7 @@ class Series(models.Model):
 
     name = models.CharField(max_length=200)
     repository = models.ForeignKey(Repository)
-    base_ubuntu_series = models.CharField(max_length=200)
+    base_ubuntu_series = models.ForeignKey('UbuntuSeries')
     numerical_version = models.CharField(max_length=200)
     state = models.SmallIntegerField(default=ACTIVE,
                                      choices=SERIES_STATES)
@@ -269,6 +269,10 @@ class Architecture(models.Model):
         return self.name
 
 
+class UbuntuSeries(models.Model):
+    name = models.CharField(max_length=200, primary_key=True)
+
+
 class ChrootTarball(models.Model):
     NOT_AVAILABLE = 1
     WAITING_TO_BUILD = 2
@@ -282,7 +286,7 @@ class ChrootTarball(models.Model):
         (READY, 'Ready'))
 
     architecture = models.ForeignKey(Architecture)
-    series = models.ForeignKey(Series)
+    series = models.ForeignKey(UbuntuSeries)
     last_refresh = models.DateTimeField(null=True, blank=True)
     state = models.SmallIntegerField(default=1, choices=BUILD_STATES)
 
@@ -295,7 +299,6 @@ class ChrootTarball(models.Model):
     def download_link(self):
         return '%s%s-%s-%s.tgz' % (settings.BASE_TARBALL_URL,
                                self.series.name,
-                               self.series.repository.name,
                                self.architecture.name)
 
     def refresh(self, proxy=False, mirror=False):
@@ -313,19 +316,16 @@ class ChrootTarball(models.Model):
         saved_cwd = os.getcwd()
         os.chdir('/')
         stdout = utils.run_cmd(['schroot', '-l'])
-        expected = 'source:%s-%s-%s' % (self.series.name,
-                                        self.series.repository.name,
+        expected = 'source:%s-%s' % (self.series.name,
                                         self.architecture.name)
 
         if expected not in stdout.split('\n'):
             def _run_in_chroot(cmd, input=None):
                 series_name = self.series.name
-                repo_name = self.series.repository.name
                 arch_name = self.architecture.name
                 return utils.run_cmd(['schroot',
-                                      '-c', '%s-%s-%s-source' % (series_name,
-                                                                 repo_name,
-                                                                 arch_name),
+                                      '-c', '%s-%s-source' % (series_name,
+                                                              arch_name),
                                       '-u', 'root', '--'] + cmd, input)
 
             mk_sbuild_extra_args = []
@@ -336,37 +336,24 @@ class ChrootTarball(models.Model):
                 mk_sbuild_extra_args += ["--debootstrap-mirror=%s" % (mirror,)]
 
             cmd = ['mk-sbuild']
-            cmd += ['--name=%s-%s' % (self.series.name,
-                                      self.series.repository.name)]
+            cmd += ['--name=%s' % (self.series.name,)]
             cmd += ['--arch=%s' % (self.architecture.name)]
             cmd += ['--type=file']
             cmd += mk_sbuild_extra_args
-            cmd += [self.series.base_ubuntu_series]
+            cmd += [self.series.name]
 
             utils.run_cmd(cmd)
             utils.run_cmd(['sudo', 'sed', '-i', '-e', 's/^#source/source/g',
-                           ('/etc/schroot/chroot.d/sbuild-%s-%s-%s' %
+                           ('/etc/schroot/chroot.d/sbuild-%s-%s' %
                                                   (self.series.name,
-                                                   self.series.repository.name,
                                                    self.architecture.name))])
 
-            format_args = tuple([settings.APT_REPO_BASE_URL,
-                                 self.series.repository.name,
-                                 self.series.name] * 4)
-            srcs = ('deb %s%s %s main\n'
-                    'deb-src %s%s %s main\n'
-                    'deb %s%s %s-proposed main\n'
-                    'deb-src %s%s %s-proposed main\n' % format_args)
-            _run_in_chroot(['tee', '--append', '/etc/apt/sources.list'], srcs)
-
-            public_key = self.series.repository.signing_key.public_key
-            _run_in_chroot(['apt-key', 'add', '-'], public_key)
             if hasattr(settings, 'POST_MK_SBUILD_CUSTOMISATION'):
                 _run_in_chroot(settings.POST_MK_SBUILD_CUSTOMISATION)
 
         utils.run_cmd(['sbuild-update',
                        '-udcar',
-                       '%s-%s' % (self.series.name, self.series.repository.name),
+                       '%s' % (self.series.name,),
                        '--arch=%s' % (self.architecture.name,)])
         os.chdir(saved_cwd)
         self.last_refresh = timezone.now()

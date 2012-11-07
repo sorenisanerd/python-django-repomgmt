@@ -41,6 +41,9 @@
 - fields: {builds_arch_all: false}
   model: repomgmt.architecture
   pk: amd64
+- fields: {}
+  model: repomgmt.ubuntuseries
+  pk: precise
 - fields: {user_name: buildd, tenant_name: buildd, password: HocsAdcotsh6, endpoint: "http://172.29.74.72:5000/v2.0"}
   model: repomgmt.cloud
   pk: os10
