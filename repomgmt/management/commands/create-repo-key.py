@@ -30,7 +30,8 @@ class Command(BaseCommand):
         if repo.signing_key_id:
             print 'Repo already has a signing key.'
             return
-        output = run_cmd(['gpg', '--gen-key'], input=textwrap.dedent('''\
+        output = run_cmd(['gpg', '--batch', '--gen-key'],
+                         input=textwrap.dedent('''\
                                                Key-Type: 1
                                                Key-Length: 4096
                                                Subkey-Type: ELG-E
