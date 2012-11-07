@@ -393,7 +393,7 @@ class BuildRecord(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def get_tarball(self):
-        return self.series.chroottarball_set.get(architecture=self.architecture)
+        return self.series.base_ubuntu_series.chroottarball_set.get(architecture=self.architecture)
 
     class Meta:
         unique_together = ('series', 'source_package_name',
