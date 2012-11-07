@@ -18,7 +18,7 @@
     <th>Download</th>
     <th>Build</th>
   </tr>
-{% for series, architectures in seriess.iteritems %}
+{% for series, architectures in tarballs.iteritems %}
   {% for architecture, tarball in architectures.iteritems %}
   <tr{% if not tarball.last_refresh %} class="warning"{% endif %}>
     <td>{{ series.name }}</td>
