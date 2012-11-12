@@ -285,6 +285,8 @@ class Architecture(models.Model):
 class UbuntuSeries(models.Model):
     name = models.CharField(max_length=200, primary_key=True)
 
+    def __unicode__(self):
+        return 'Ubuntu %s' % (self.name.capitalize())
 
 class ChrootTarball(models.Model):
     NOT_AVAILABLE = 1
