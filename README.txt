@@ -89,7 +89,9 @@ Fire up a fresh, clean Ubuntu VM and log in.
 sudo apt-get -y install git puppet
 git clone https://github.com/sorenh/python-django-repomgmt
 sudo -H puppet apply --modulepath python-django-repomgmt/puppet python-django-repomgmt/puppet/repomgmt/tests/install.pp 
+logout
+ssh back in
 cd buildd
-screen
-python manage.py runserver 0.0.0.0:8000
+screen -dmS www bash -c 'python manage.py runserver 0.0.0.0:8000'
+screen -dmS celeryworker1 bash -c 'python manage.py celery worker -B --autoreload'
 
