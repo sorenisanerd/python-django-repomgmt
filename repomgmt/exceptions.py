@@ -15,15 +15,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-from django.core.management.base import BaseCommand
-from repomgmt.models import PackageSource
 
 
-class Command(BaseCommand):
-    args = ''
-    help = 'Poll all upstream archives and update local db accordingly'
+class NoPendingBuilds(Exception):
+    pass
 
-    def handle(self, **options):
-        for pkg_src in PackageSource.objects.all():
-            print pkg_src
-            print pkg_src.poll()
+class CommandFailed(Exception):
+    pass

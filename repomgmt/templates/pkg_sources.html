@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<p>These are the code sources we poll to generate source packages which are in turn uploaded to an APT repository.<a href="{% url new_pkg_source_form %}" class="btn pull-right">Create new</a></p>
+</p>
+<table class="table table-striped">
+  <tr>
+    <th>Name</th>
+    <th>Code URL</th>
+    <th>Packaging URL</th>
+  </tr>
+{% for pkg_source in pkg_sources %}
+  <tr>
+    <td>{{ pkg_source.name }}</td>
+    <td>{{ pkg_source.code_url }}</td>
+    <td>{{ pkg_source.packaging_url }}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

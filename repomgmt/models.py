@@ -15,21 +15,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import datetime
+import glob
+import logging
 import os
 import os.path
 import random
 import paramiko
 import select
+import shutil
 import StringIO
 import socket
 import sys
+import tempfile
 import termios
 import textwrap
 import time
 import tty
 
 from django.conf import settings
-from django.contrib.auth import models as auth_models
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.loader import render_to_string
@@ -43,12 +48,15 @@ else:
 
 
 from repomgmt import utils
+from repomgmt.exceptions import CommandFailed
+
+logger = logging.getLogger(__name__)
 
 
 class Repository(models.Model):
     name = models.CharField(max_length=200, primary_key=True)
     signing_key_id = models.CharField(max_length=200)
-    uploaders = models.ManyToManyField(auth_models.User)
+    uploaders = models.ManyToManyField(User)
     contact = models.EmailField()
 
     class Meta:
@@ -117,12 +125,13 @@ class Repository(models.Model):
             if path.endswith('.sh'):
                 os.chmod(path, 0755)
 
-        self._reprepro('export')
+        if self.series_set.count() > 0:
+            self._reprepro('export')
 
 
 class UploaderKey(models.Model):
     key_id = models.CharField(max_length=200, primary_key=True)
-    uploader = models.ForeignKey(auth_models.User)
+    uploader = models.ForeignKey(User)
 
     def save(self):
         utils.run_cmd(['gpg', '--recv-keys', self.key_id])
@@ -728,3 +737,199 @@ class BuildNode(models.Model):
         shell = ssh.invoke_shell(os.environ.get('TERM', 'vt100'))
         self._posix_shell(shell)
 
+
+class TarballCacheEntry(models.Model):
+    project_name = models.CharField(max_length=200)
+    project_version = models.CharField(max_length=200)
+    rev_id = models.CharField(max_length=200, db_index=True)
+
+    def project_tarball_dir(self):
+        return os.path.join(settings.TARBALL_DIR, self.project_name)
+
+    def filename(self):
+        return '%s.tar.gz' % (self.rev_id,)
+
+    def filepath(self):
+        return os.path.join(self.project_tarball_dir(), self.filename())
+
+    def store_file(self, filename):
+        if not os.path.exists(self.project_tarball_dir()):
+            os.makedirs(self.project_tarball_dir())
+
+        shutil.copy(filename, self.filepath())
+
+
+class PackageSource(models.Model):
+    OPENSTACK = 'OpenStack'
+
+    PACKAGING_FLAVORS = (
+        (OPENSTACK, 'OpenStack'),
+    )
+
+    name = models.CharField(max_length=200)
+    code_url = models.CharField(max_length=200)
+    packaging_url = models.CharField(max_length=200)
+    last_seen_code_rev = models.CharField(max_length=200)
+    last_seen_pkg_rev = models.CharField(max_length=200)
+    flavor = models.CharField(max_length=200, choices=PACKAGING_FLAVORS)
+
+    def __unicode__(self):
+        return self.name
+
+    @classmethod
+    def _guess_vcs_type(cls, url):
+        if 'launchpad' in url:
+            return 'bzr'
+        if 'github' in url:
+            return 'git'
+        raise Exception('No idea what to do with %r' % url)
+
+    @classmethod
+    def lookup_revision(cls, url):
+        logger.debug("Looking up current revision of %s" % (url,))
+        vcstype = cls._guess_vcs_type(url)
+
+        if vcstype == 'bzr':
+            out = utils.run_cmd(['bzr', 'revision-info', '-d', url])
+            return out.split('\n')[0].split(' ')[1]
+
+        if vcstype == 'git':
+            if '#' in url:
+                url, branch = url.split('#')
+            else:
+                branch = 'master'
+            out = utils.run_cmd(['git', 'ls-remote', url, branch])
+            return out.split('\n')[0].split('\t')[0]
+
+    def poll(self):
+        current_code_revision = self.lookup_revision(self.code_url)
+        current_pkg_revision = self.lookup_revision(self.packaging_url)
+
+        something_changed = False
+        if self.last_seen_code_rev != current_code_revision:
+            something_changed = True
+            try:
+                cache_entry = TarballCacheEntry.objects.get(rev_id=current_code_revision)
+            except TarballCacheEntry.DoesNotExist:
+                tmpdir = tempfile.mkdtemp()
+                codedir = os.path.join(tmpdir, 'checkout')
+                PackageSource._checkout_code(self.code_url, codedir,
+                                             current_code_revision)
+
+                if self.flavor == self.OPENSTACK:
+                    project_name = utils.run_cmd(['python', 'setup.py', '--name'],
+                                                 cwd=codedir).strip()
+                    project_version = utils.run_cmd(['python', 'setup.py',
+                                                    '--version'],
+                                                    cwd=codedir).strip()
+
+                    cache_entry = TarballCacheEntry(project_name=project_name,
+                                                    project_version=project_version,
+                                                    rev_id=current_code_revision)
+
+                    utils.run_cmd(['python', 'setup.py', 'sdist'], cwd=codedir)
+                    tarballs_in_dist = glob.glob(os.path.join(codedir,
+                                                              'dist',
+                                                              '*.tar.gz'))
+                    if len(tarballs_in_dist) != 1:
+                        raise Exception('Found %d tarballs after '
+                                        '"python setup.py sdist". Expected 1.')
+
+                    cache_entry.store_file(tarballs_in_dist[0])
+                    cache_entry.save()
+
+                    shutil.rmtree(tmpdir)
+        else:
+            cache_entry = TarballCacheEntry.objects.get(rev_id=current_code_revision)
+
+        if self.last_seen_pkg_rev != current_pkg_revision:
+            something_changed = True
+
+        if something_changed:
+            for subscription in self.subscription_set.all():
+                tmpdir = tempfile.mkdtemp()
+                pkgdir = os.path.join(tmpdir, 'checkout')
+                PackageSource._checkout_code(self.packaging_url, pkgdir,
+                                             current_pkg_revision)
+                orig_version = '%s-%s' % (cache_entry.project_version,
+                                          subscription.counter)
+                os.symlink(cache_entry.filepath(),
+                           '%s/%s_%s.orig.tar.gz' % (tmpdir,
+                                                     cache_entry.project_name,
+                                                     orig_version))
+
+                pkg_version = '%s-vendor1' % (orig_version,)
+
+                utils.run_cmd(['dch', '-b',
+                              '--force-distribution',
+                              '-v', pkg_version,
+                              'Automated PPA build. Code revision: %s. '
+                              'Packaging revision: %s.' % (current_code_revision,
+                                                           current_pkg_revision),
+                              '-D', subscription.target_series.name],
+                              cwd=pkgdir,
+                              override_env={'DEBEMAIL': 'not-valid@example.com',
+                                            'DEBFULLNAME': '%s Autobuilder' % (subscription.target_series.repository.name)})
+                utils.run_cmd(['bzr', 'bd', '-S',
+                               '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
+                               ],
+                              cwd=pkgdir)
+
+#            or self.last_seen_pkg_rev != current_pkg_revision):
+#            logger.info('%s differed. Triggering builds' % (self,))
+#            retval = True
+
+            self.last_seen_code_rev = current_code_revision
+            self.last_seen_pkg_rev = current_pkg_revision
+            self.save()
+        return something_changed
+
+    @classmethod
+    def _checkout_code(cls, url, destdir, revision):
+        print ("Checking out revision %s of %s" % (revision, url))
+        vcstype = cls._guess_vcs_type(url)
+
+        if vcstype == 'bzr':
+            if os.path.exists(destdir):
+                utils.run_cmd(['bzr', 'pull',
+                               '-r', revision,
+                               '-d', destdir, url])
+                utils.run_cmd(['bzr', 'revert', '-r', revision], cwd=destdir)
+                utils.run_cmd(['bzr', 'clean-tree',
+                                '--unknown', '--detritus',
+                                '--ignored', '--force'], cwd=destdir)
+            else:
+                utils.run_cmd(['bzr', 'checkout',
+                                      '--lightweight',
+                                      '-r', revision,
+                                      url, destdir])
+        elif vcstype == 'git':
+            if not os.path.exists(settings.GIT_CACHE_DIR):
+                utils.run_cmd(['git', 'init', settings.GIT_CACHE_DIR])
+
+            try:
+                # If it's already here, don't fetch.
+                utils.run_cmd(['git', 'show', revision, '--'],
+                              cwd=settings.GIT_CACHE_DIR)
+            except CommandFailed:
+                fetch_cmd = ['git', 'fetch']
+
+                if '#' in url:
+                    fetch_cmd += url.split('#')
+                else:
+                    fetch_cmd = [url]
+
+                utils.run_cmd(fetch_cmd, cwd=settings.GIT_CACHE_DIR)
+
+            if not os.path.exists(destdir):
+                utils.run_cmd(['git', 'clone', '--shared',
+                               settings.GIT_CACHE_DIR, destdir])
+
+            utils.run_cmd(['git', 'reset', '--hard', revision], cwd=destdir)
+            utils.run_cmd(['git', 'clean', '-dfx'], cwd=destdir)
+
+
+class Subscription(models.Model):
+    source = models.ForeignKey(PackageSource)
+    target_series = models.ForeignKey(Series)
+    counter = models.IntegerField()

@@ -16,7 +16,8 @@ class repomgmt($user = 'ubuntu') {
   package { ["django",
              "django-celery",
              "django-tastypie",
-             "python-novaclient"]:
+             "python-novaclient",
+             "south"]:
     provider => "pip",
     ensure => "installed",
     require => Package['python-pip']

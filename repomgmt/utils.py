@@ -16,23 +16,40 @@
 #   limitations under the License.
 #
 import logging
+import os
 import re
 import subprocess
 
 from django.conf import settings
 
+from repomgmt.exceptions import CommandFailed
+
 logger = logging.getLogger(__name__)
 
 
-def run_cmd(cmd, input=None):
+def run_cmd(cmd, input=None, cwd=None, override_env=None):
     logger.info('Executing %r with input=%r' % (cmd, input))
     if settings.TESTING:
         from repomgmt import mock_data
         return mock_data.run_cmd(cmd, input)
+
+    environ = dict(os.environ)
+
+    for k in override_env or []:
+        if override_env[k] is None and k in environ:
+            del environ[k]
+        else:
+            environ[k] = override_env[k]
+
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
+                            stderr=subprocess.STDOUT, cwd=cwd, env=environ)
     stdout, stderr = proc.communicate(input)
     logger.debug('%r with input=%r returned %r' % (cmd, input, stdout))
+
+    if proc.returncode != 0:
+        raise CommandFailed('%r returned %d. Output: %s' %
+                            (cmd, proc.returncode, stdout))
+
     return stdout
 
 

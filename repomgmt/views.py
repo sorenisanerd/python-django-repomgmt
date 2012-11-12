@@ -24,7 +24,7 @@ from django.shortcuts import render
 from repomgmt import utils, tasks
 from repomgmt.models import Architecture, BuildNode, BuildRecord
 from repomgmt.models import ChrootTarball, Repository, Series
-from repomgmt.models import UbuntuSeries
+from repomgmt.models import UbuntuSeries, PackageSource
 
 
 class NewArchitectureForm(ModelForm):
@@ -43,6 +43,12 @@ class NewSeriesForm(ModelForm):
     class Meta:
         model = Series
         fields = ("name", "numerical_version", "base_ubuntu_series", "state")
+
+
+class NewPkgSourceForm(ModelForm):
+    class Meta:
+        model = PackageSource
+        fields = ("name", "code_url", "packaging_url", "flavor")
 
 
 def new_architecture_form(request):
@@ -72,6 +78,29 @@ def new_series_form(request, repository_name):
     return render(request, 'new_series_form.html',
                            {'form': form,
                             'repository': repository})
+
+
+def new_pkg_source_form(request):
+    if request.method == 'POST':
+        form = NewPkgSourceForm(request.POST)
+    else:
+        form = NewPkgSourceForm()
+    return render(request, 'new_pkg_source_form.html',
+                           {'form': form})
+
+
+def pkg_sources_list(request):
+    if request.method == 'POST':
+        if request.POST['action'] == 'create':
+            form = NewPkgSourceForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect(reverse('pkg_sources_list'))
+            else:
+                return new_pkg_source_form(request)
+
+    return render(request, 'pkg_sources.html',
+                          {'pkg_sources': PackageSource.objects.all()})
 
 
 def architecture_list(request):

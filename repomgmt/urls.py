@@ -29,6 +29,11 @@ urlpatterns = patterns('',
     url(r'^builds/$', 'repomgmt.views.build_list', name='build_list'),
 
     # Architectures
+    url(r'^packagesources/$', 'repomgmt.views.pkg_sources_list',
+                              name='pkg_sources_list'),
+    url(r'^packagesources/new/$', 'repomgmt.views.new_pkg_source_form',
+                              name='new_pkg_source_form'),
+    # Architectures
     url(r'^architectures/$', 'repomgmt.views.architecture_list',
                               name='architecture_list'),
     url(r'^architectures/new/$', 'repomgmt.views.new_architecture_form',

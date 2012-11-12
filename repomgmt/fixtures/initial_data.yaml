@@ -30,7 +30,7 @@
     interval: 1
     kwargs: '{}'
     last_run_at: null
-    name: process-build-queue
+    name: process-incoming
     queue: null
     routing_key: null
     task: repomgmt.tasks.process_incoming
