@@ -128,6 +128,10 @@ class Repository(models.Model):
         if self.series_set.count() > 0:
             self._reprepro('export')
 
+    def save(self, *args, **kwargs):
+        self.write_configuration()
+        return super(Repository, self).save(*args, **kwargs)
+
 
 class UploaderKey(models.Model):
     key_id = models.CharField(max_length=200, primary_key=True)
