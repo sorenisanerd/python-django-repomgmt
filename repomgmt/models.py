@@ -923,7 +923,7 @@ class PackageSource(models.Model):
                 if '#' in url:
                     fetch_cmd += url.split('#')
                 else:
-                    fetch_cmd = [url]
+                    fetch_cmd += [url]
 
                 utils.run_cmd(fetch_cmd, cwd=settings.GIT_CACHE_DIR)
 
