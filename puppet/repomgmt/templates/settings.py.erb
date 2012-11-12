@@ -176,6 +176,8 @@ BASE_URL = "http://%s:8000" % (floating_ip,)
 APT_REPO_BASE_URL = "http://%s/repos/" % (floating_ip,)
 BASE_TARBALL_URL = 'http://%s/tarballs/' % (floating_ip,)
 
+import os.path
+
 TARBALL_DIR = os.path.join(os.environ['HOME'], 'tarballs')
 GIT_CACHE_DIR = os.path.join(os.environ['HOME'], 'gitcache')
 
