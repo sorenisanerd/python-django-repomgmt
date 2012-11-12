@@ -13,7 +13,7 @@ class repomgmt($user = 'ubuntu') {
     ensure => "installed",
   }
 
-  package { ["django",
+  package { ["Django",
              "django-celery",
              "django-tastypie",
              "python-novaclient",
