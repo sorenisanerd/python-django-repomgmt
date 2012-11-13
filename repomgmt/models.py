@@ -896,14 +896,19 @@ class PackageSource(models.Model):
                               cwd=pkgdir,
                               override_env={'DEBEMAIL': 'not-valid@example.com',
                                             'DEBFULLNAME': '%s Autobuilder' % (subscription.target_series.repository.name)})
+
                 utils.run_cmd(['bzr', 'bd', '-S',
                                '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
                                ],
                               cwd=pkgdir)
 
-#            or self.last_seen_pkg_rev != current_pkg_revision):
-#            logger.info('%s differed. Triggering builds' % (self,))
-#            retval = True
+                changes_files = glob.glob(os.path.join(tmpdir, '*.changes'))
+
+                if len(changes_files) != 1:
+                    raise Exception('Unexpected number of changes files: %d' % len(changes_files))
+
+                utils.run_cmd(['dput', '-c', '%s/conf/dput.cf' % subscription.target_series.repository.reprepro_dir,
+                               'autopush', changes_files[0]])
 
             self.last_seen_code_rev = current_code_revision
             self.last_seen_pkg_rev = current_pkg_revision
