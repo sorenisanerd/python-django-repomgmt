@@ -138,6 +138,11 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+    },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
@@ -148,6 +153,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.WatchedFileHandler',
             'filename': '/home/<%= user %>/repomgmt.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
