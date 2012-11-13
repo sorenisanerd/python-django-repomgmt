@@ -643,7 +643,7 @@ class BuildNode(models.Model):
     def start_new(cls):
         cloud = random.choice(Cloud.objects.all())
         cl = cloud.client
-        if len(cloud.keypair_set.all()) < 1:
+        if cloud.keypair_set.count() < 1:
             name = cls.get_unique_keypair_name(cl)
             kp = cl.keypairs.create(name=name)
             keypair = KeyPair(cloud=cloud, name=name,
