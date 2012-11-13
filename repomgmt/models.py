@@ -787,11 +787,17 @@ class PackageSource(models.Model):
     )
 
     name = models.CharField(max_length=200)
-    code_url = models.CharField(max_length=200)
-    packaging_url = models.CharField(max_length=200)
+    code_url = models.CharField(max_length=200,
+                                help_text="(To specify a specific branch, add "
+                                          "'#branchname' to the end of the url)")
+    packaging_url = models.CharField(max_length=200,
+                                     help_text="(To specify a specific branch,"
+                                               " add '#branchname' to the end "
+                                               "of the url)")
     last_seen_code_rev = models.CharField(max_length=200)
     last_seen_pkg_rev = models.CharField(max_length=200)
-    flavor = models.CharField(max_length=200, choices=PACKAGING_FLAVORS)
+    flavor = models.CharField(max_length=200, choices=PACKAGING_FLAVORS,
+                              default=OPENSTACK)
 
     def __unicode__(self):
         return self.name
