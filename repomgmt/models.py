@@ -838,10 +838,10 @@ class PackageSource(models.Model):
 
                 if self.flavor == self.OPENSTACK:
                     project_name = utils.run_cmd(['python', 'setup.py', '--name'],
-                                                 cwd=codedir).strip()
+                                                 cwd=codedir).strip().split('\n')[-1]
                     project_version = utils.run_cmd(['python', 'setup.py',
                                                     '--version'],
-                                                    cwd=codedir).strip()
+                                                    cwd=codedir).strip().split('\n')[-1]
 
                     cache_entry = TarballCacheEntry(project_name=project_name,
                                                     project_version=project_version,
