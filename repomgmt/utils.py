@@ -27,7 +27,8 @@ from repomgmt.exceptions import CommandFailed
 logger = logging.getLogger(__name__)
 
 
-def run_cmd(cmd, input=None, cwd=None, override_env=None):
+def run_cmd(cmd, input=None, cwd=None, override_env=None,
+            discard_stderr=False):
     logger.info('Executing %r with input=%r' % (cmd, input))
     if settings.TESTING:
         from repomgmt import mock_data
@@ -41,14 +42,19 @@ def run_cmd(cmd, input=None, cwd=None, override_env=None):
         else:
             environ[k] = override_env[k]
 
+    if discard_stderr:
+        stderr_arg = subprocess.PIPE
+    else:
+        stderr_arg = subprocess.STDOUT
+
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, cwd=cwd, env=environ)
+                            stderr=stderr_arg, cwd=cwd, env=environ)
     stdout, stderr = proc.communicate(input)
     logger.debug('%r with input=%r returned %r' % (cmd, input, stdout))
 
     if proc.returncode != 0:
-        raise CommandFailed('%r returned %d. Output: %s' %
-                            (cmd, proc.returncode, stdout))
+        raise CommandFailed('%r returned %d. Output: %s (stderr: %s)' %
+                            (cmd, proc.returncode, stdout, stderr))
 
     return stdout
 
