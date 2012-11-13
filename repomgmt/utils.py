@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def run_cmd(cmd, input=None, cwd=None, override_env=None,
             discard_stderr=False):
-    logger.info('Executing %r with input=%r' % (cmd, input))
+    logger.debug('Executing %r with input=%r' % (cmd, input))
     if settings.TESTING:
         from repomgmt import mock_data
         return mock_data.run_cmd(cmd, input)
