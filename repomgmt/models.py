@@ -532,10 +532,24 @@ class BuildNode(models.Model):
         return self.name
 
     def _run_cmd(self, cmd, *args, **kwargs):
+        def log(s):
+            logger.info('%-15s: %s' % (self.name, s))
+
+        def log_whole_lines(lbuf):
+            while '\n' in lbuf:
+                line, lbuf = lbuf.split('\n', 1)
+                log(line)
+            return lbuf
+
         out = ''
+        lbuf = ''
         for data in self.run_cmd(cmd, *args, **kwargs):
             out += data
-            print data,
+            lbuf += data
+            lbuf = log_whole_lines(lbuf)
+
+        lbuf = log_whole_lines(lbuf)
+        log(lbuf)
         return out
 
     def prepare(self, build_record):
