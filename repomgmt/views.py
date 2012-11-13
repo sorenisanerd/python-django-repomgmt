@@ -166,7 +166,8 @@ def package_list(request, repository_name, series_name):
 
     return render(request, 'packages.html',
                           {'series': series,
-                            'pkg_data': pkg_data})
+                           'subscriptions': series.subscription_set.all(),
+                           'pkg_data': pkg_data})
 
 
 def promote_series(request):
