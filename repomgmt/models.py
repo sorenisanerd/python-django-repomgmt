@@ -658,7 +658,7 @@ class BuildNode(models.Model):
 
         srv = cl.servers.create(name, image, flavor, key_name=keypair.name)
 
-        if settings.get('USE_FLOATING_IPS', False):
+        if getattr(settings, 'USE_FLOATING_IPS', False):
             floating_ip = cl.floating_ips.create()
             srv.add_floating_ip(floating_ip.ip)
 
@@ -674,16 +674,16 @@ class BuildNode(models.Model):
 
     @property
     def ip(self):
-        if settings.get('USE_FLOATING_IPS', False):
+        if getattr(settings, 'USE_FLOATING_IPS', False):
             index = 1
         else:
             index = 0
         return self.cloud_server.networks.values()[0][index]
 
     def delete(self):
-        if settings.get('USE_FLOATING_IPS', False):
+        if getattr(settings, 'USE_FLOATING_IPS', False):
             floating_ip = self.ip
-            srv.remove_floating_ip(floating_ip.ip)
+            self.cloud_server.remove_floating_ip(floating_ip.ip)
 
         self.cloud_server.delete()
 
