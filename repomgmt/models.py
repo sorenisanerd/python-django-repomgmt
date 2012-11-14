@@ -683,7 +683,9 @@ class BuildNode(models.Model):
     def delete(self):
         if getattr(settings, 'USE_FLOATING_IPS', False):
             floating_ip = self.ip
+            ref = self.cloud.client.floating_ips.get(floating_ip)
             self.cloud_server.remove_floating_ip(floating_ip.ip)
+            ref.delete()
 
         self.cloud_server.delete()
 
