@@ -660,7 +660,21 @@ class BuildNode(models.Model):
 
         if getattr(settings, 'USE_FLOATING_IPS', False):
             floating_ip = cl.floating_ips.create()
-            srv.add_floating_ip(floating_ip.ip)
+
+            timeout = time.time() + 20
+            succeeded = False
+            while timeout > time.time():
+                try:
+                    srv.add_floating_ip(floating_ip.ip)
+                    succeeded = True
+                except:
+                    pass
+                time.sleep(1)
+
+            if not succeeded:
+                srv.delete()
+                raise Exception('Failed to spawn node')
+
 
         bn = BuildNode(name=name, cloud=cloud, cloud_node_id=srv.id)
         bn.save()
