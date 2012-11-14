@@ -1,34 +1,11 @@
-class repomgmt($user = 'buildd',
-               $port = '80',
-               $hostname,
-               $priority = '30',
-               admin_name => "Admin User",
-               admin_email => "email@example.com"
-               dbname => "repomgmt",
-               dbuser => "repomgmt",
-               dbpass => "repomgmtpass",
-               dbhost => "",
-               dbport => ""
-               secret_key => '!tuy9ozxr@zhr$8v3$41^3690dfnrim16yj8x5)4pi0bg%140l',
-               ftp_ip => $::ipaddress,
-               ) {
-  
-  include apache 
-
-  $simple = false;
-
-  apache::vhost { "repomgmt":
-    priority           => $priority,
-    port               => $port,
-    template           => "repomgmt/apache.site.erb",
-    doctroot           => "/home/$user/www",
-    configure_firewall => false
-  }
+class repomgmt($user = 'ubuntu') {
+  $simple = true;
 
   package { ["python-pip",
              "devscripts",
              "sbuild",
              "git",
+             "apache2",
              "rabbitmq-server",
              "ubuntu-dev-tools",
              "reprepro",
@@ -48,13 +25,6 @@ class repomgmt($user = 'buildd',
     require => Package['python-pip']
   }
 
-  mysql::db { "$dbname":
-    user     => "$dbuser",
-    password => "$dbpass",
-    host     => 'localhost',
-    grant    => ['all'],
-  }
-
   exec { "/usr/bin/pip install -e git+http://github.com/sorenh/python-django-repomgmt#egg=django-repomgmt":
     require => [Package['git'], Package['python-pip']]
   }
@@ -66,20 +36,20 @@ class repomgmt($user = 'buildd',
     require => Package['sbuild']
   }
 
-  exec { "/usr/local/bin/django-admin.py startproject www":
-    creates => "/home/$user/www",
+  exec { "/usr/local/bin/django-admin.py startproject buildd":
+    creates => "/home/$user/buildd",
     cwd => "/home/$user",
     user => $user
   } ->
-  file { "/home/$user/www/www/settings.py":
+  file { "/home/$user/buildd/buildd/settings.py":
     content => template('repomgmt/settings.py.erb'),
     owner => $user
   } ->
-  file { "/home/$user/www/www/urls.py":
+  file { "/home/$user/buildd/buildd/urls.py":
     content => template('repomgmt/urls.py.erb'),
     owner => $user
   } ~>
-  exec { "/usr/bin/python /home/$user/www/manage.py syncdb --noinput":
+  exec { "/usr/bin/python /home/$user/buildd/manage.py syncdb --noinput":
     user => $user,
     refreshonly => true
   }
@@ -105,4 +75,13 @@ class repomgmt($user = 'buildd',
     command => "/sbin/restart vsftpd",
     refreshonly => true
   }
+
+  file { "/etc/apache2/conf.d/repomgmt.conf":
+    content => template('repomgmt/apache.conf.erb'),
+    owner => $user,
+    require => Package["apache2"]
+  } ~>
+  exec { "/etc/init.d/apache2 reload":
+    refreshonly => true
+  } 
 }

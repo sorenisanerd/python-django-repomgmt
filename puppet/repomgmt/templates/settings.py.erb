@@ -1,22 +1,22 @@
-# Django settings for buildd project.
+# Django settings for www project.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG 
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('<%= admin_name %>', '<%= admin_email %>'),
 )
 
 MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/home/<%= user %>/buildd.sqlite',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    'ENGINE': 'mysql',
+        'NAME': '<%= dbname %>',
+        'USER': '<%= dbuser %>',
+        'PASSWORD': '<%= dbpass %>',
+        'HOST': '<%= dbhost %>',
+        'PORT': '<%= dbport %>',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -56,7 +56,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = '/home/<%= user %>/www/static'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -78,7 +78,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '!tuy8ozxr@zhr$8v3$41^3690dfnril16yj8x5)4pi0bg%140l'
+SECRET_KEY = '<%= secret_key %>'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (   
@@ -97,10 +97,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'buildd.urls'
+ROOT_URLCONF = 'www.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'buildd.wsgi.application'
+WSGI_APPLICATION = 'www.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -172,24 +172,34 @@ LOGGING = {
 
 # repomgmt settings
 TESTING=False
+
+<% if simple %>
+
 import urllib
 floating_ip = urllib.urlopen('http://169.254.169.254/2009-04-04/meta-data/public-ipv4').read()
 fixed_ip = urllib.urlopen('http://169.254.169.254/2009-04-04/meta-data/local-ipv4').read()
-
+ 
 FTP_IP = fixed_ip
 FTP_BASE_PATH = "/incoming"
 BASE_URL = "http://%s:8000" % (floating_ip,)
 APT_REPO_BASE_URL = "http://%s/repos/" % (floating_ip,)
 BASE_TARBALL_URL = 'http://%s/tarballs/' % (floating_ip,)
 
-import os.path
+<% else %>
 
+FTP_IP = <%= ftp_ip %>
+BASE_URL = "http://<%= hostname %>:<%= port %>"
+APT_REPO_BASE_URL = "%s/repos/" % (BASE_URL,)
+BASE_TARBALL_URL = '%s/tarballs/' % (BASE_URL,)
+
+<% end %>
+
+import os.path
+BASE_INCOMING_DIR = '/srv/ftp/incoming'
 TARBALL_DIR = os.path.join(os.environ['HOME'], 'tarballs')
 GIT_CACHE_DIR = os.path.join(os.environ['HOME'], 'gitcache')
-
-BASE_INCOMING_DIR = '/srv/ftp/incoming'
-BASE_REPO_DIR = '/home/<%= user %>/repos'
-BASE_PUBLIC_REPO_DIR = '/home/<%= user %>/public'
+BASE_REPO_DIR = os.path.join(os.environ['HOME'], 'repos')
+BASE_PUBLIC_REPO_DIR = os.path.join(os.environ['HOME'], 'public')
 
 # Enable Celery
 import djcelery

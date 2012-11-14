@@ -1,0 +1,18 @@
+<VirtualHost *:<%= port %>>
+    ServerName <%= hostname %>
+    DocumentRoot /home/<%= user %>/www
+
+    Alias /static /home/<%= user %>/www/static
+    Alias /tarballs /var/lib/schroot/tarballs
+    Alias /repos /home/<%= user %>/public
+
+    <Directory /home/<%= user %>/public>
+        Options Indexes
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+    WSGIScriptAlias / /home/buildd/www/wsgi.py
+    WSGIDaemonProcess buildd user=buildd
+    WSGIProcessGroup buildd
+</VirtualHost>

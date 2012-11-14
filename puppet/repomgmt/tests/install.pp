@@ -1,1 +1,1 @@
-class { 'repomgmt': }
+class { 'repomgmt::simple': }
