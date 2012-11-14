@@ -594,6 +594,8 @@ class BuildNode(models.Model):
             self.save()
             build_record.series.repository.write_configuration()
         except Exception, e:
+            logger.info('Preparing build node %s failed' % (self.name),
+                         exc_info=True)
             self.delete()
 
     def build(self, build_record):
