@@ -657,6 +657,11 @@ class BuildNode(models.Model):
         image = utils.get_image_by_regex(cl, cl.cloud.image_name)
 
         srv = cl.servers.create(name, image, flavor, key_name=keypair.name)
+
+        if settings.get('USE_FLOATING_IPS', False):
+            floating_ip = cl.floating_ips.create()
+            srv.add_floating_ip(floating_ip.ip)
+
         bn = BuildNode(name=name, cloud=cloud, cloud_node_id=srv.id)
         bn.save()
         return bn
@@ -669,10 +674,19 @@ class BuildNode(models.Model):
 
     @property
     def ip(self):
-        return self.cloud_server.networks.values()[0][0]
+        if settings.get('USE_FLOATING_IPS', False):
+            index = 1
+        else:
+            index = 0
+        return self.cloud_server.networks.values()[0][index]
 
     def delete(self):
+        if settings.get('USE_FLOATING_IPS', False):
+            floating_ip = self.ip
+            srv.remove_floating_ip(floating_ip.ip)
+
         self.cloud_server.delete()
+
         if self.signing_key_id:
             utils.run_cmd(['gpg', '--batch', '--yes',
                            '--delete-keys', self.signing_key_id])
