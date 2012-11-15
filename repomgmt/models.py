@@ -1011,7 +1011,18 @@ class PackageSource(models.Model):
                                                      cache_entry.project_name,
                                                      orig_version))
 
-                pkg_version = '%s-vendor1' % (orig_version,)
+                changelog = utils.run_cmd(['dpkg-parsechangelog'], cwd=pkgdir)
+
+                for l in changelog.split('\n'):
+                    if l.startswith('Version: '):
+                        version = l[len('Version: '):]
+
+                if ':' in version:
+                    epoch = '%s:' % (version.split(':')[0],)
+                else:
+                    epoch = ''
+
+                pkg_version = '%s%s-vendor1' % (epoch, orig_version,)
 
                 utils.run_cmd(['dch', '-b',
                               '--force-distribution',
