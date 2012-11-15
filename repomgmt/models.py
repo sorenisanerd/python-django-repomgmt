@@ -623,6 +623,7 @@ class BuildNode(models.Model):
     def build(self, build_record):
         self.update_state(BuildNode.BUILDING)
         build_record.update_state(BuildRecord.BUILDING)
+        success = False
         try:
             series = build_record.series
             self._run_cmd('mkdir build')
@@ -638,8 +639,14 @@ class BuildNode(models.Model):
                                       build_record.version))
             self._run_cmd(sbuild_cmd)
             self._run_cmd('cd build; dput return *.changes')
+            success = True
         except Exception:
             pass
+
+        if success:
+            build_record.update_state(BuildRecord.SUCCESFULLY_BUILT)
+        else:
+            build_record.update_state(BuildRecord.FAILED_TO_BUILD)
 
         build_record.update_state(BuildRecord.SUCCESFULLY_BUILT)
         self.update_state(BuildNode.SHUTTING_DOWN)
