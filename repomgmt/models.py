@@ -109,7 +109,8 @@ class Repository(models.Model):
                 os.makedirs(d)
 
         for f in ['distributions', 'incoming', 'options', 'pulls',
-                  'uploaders', 'create-build-records.sh', 'dput.cf']:
+                  'uploaders', 'create-build-records.sh', 'dput.cf',
+                  'process-changes.sh']:
             s = render_to_string('reprepro/%s.tmpl' % (f,),
                                  {'repository': self,
                                   'architectures': Architecture.objects.all(),
