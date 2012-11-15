@@ -58,11 +58,11 @@ if [ $STAGE = "setup-start" ] || [ $STAGE = "setup-recover" ]; then
     echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
 fi
 
-cat <<EOF > /repo.key
+cat <<EOF > "${CHROOT_PATH}/repo.key"
 {{ build_record.series.repository.signing_key.public_key }}
 EOF
 
-apt-key add /repo.key
+chroot "${CHROOT_PATH}/usr/bin/apt-key" add /repo.key
 
 ' }
 
