@@ -25,7 +25,7 @@ Tracking: minimal includelogs
 Pull: {{ series.name }}-flush
 Log:
  --type=dsc create-build-records.sh
- --type=changes process-changes.sh
+ --changes process-changes.sh
 
 Origin: {{ repository.name.capitalize }}
 Label: {{ repository.name.capitalize }}
