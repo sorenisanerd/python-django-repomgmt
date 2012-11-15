@@ -95,6 +95,8 @@ class Repository(models.Model):
         return BuildNode.objects.filter(buildrecord__series__repository=self)
 
     def write_configuration(self):
+        logging.debug('Writing out config for %s' % (self.name,))
+
         confdir = '%s/conf' % (self.reprepro_dir,)
 
         settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
@@ -218,7 +220,6 @@ class Series(models.Model):
             if old.state != self.state:
                 if (old.state == Series.FROZEN and
                          self.state == Series.ACTIVE):
-                    print 'flushing'
                     self.flush_queue()
         return super(Series, self).save(*args, **kwargs)
 
@@ -231,6 +232,7 @@ class Series(models.Model):
         self.save()
 
     def flush_queue(self):
+        logging.info('Flushing queue for %s' % (self,))
         self.repository._reprepro('pull', '%s-proposed' % (self.name, ))
 
     def get_source_packages(self):
@@ -288,6 +290,7 @@ class UbuntuSeries(models.Model):
     def __unicode__(self):
         return 'Ubuntu %s' % (self.name.capitalize())
 
+
 class ChrootTarball(models.Model):
     NOT_AVAILABLE = 1
     WAITING_TO_BUILD = 2
@@ -318,7 +321,11 @@ class ChrootTarball(models.Model):
 
     def refresh(self, proxy=False, mirror=False):
         if self.state == self.CURRENTLY_BUILDING:
+            logging.info('Already building %s. '
+                         'Ignoring request to refresh.' % (self,))
             return
+        logging.info('Refreshing %s tarball.' % (self,))
+
         self.state = self.CURRENTLY_BUILDING
         self.save()
 
@@ -335,6 +342,9 @@ class ChrootTarball(models.Model):
                                         self.architecture.name)
 
         if expected not in stdout.split('\n'):
+            logging.info('Existing schroot for %s not found. '
+                         'Starting from scratch.' % (self,))
+
             def _run_in_chroot(cmd, input=None):
                 series_name = self.series.name
                 arch_name = self.architecture.name
@@ -366,6 +376,7 @@ class ChrootTarball(models.Model):
             if hasattr(settings, 'POST_MK_SBUILD_CUSTOMISATION'):
                 _run_in_chroot(settings.POST_MK_SBUILD_CUSTOMISATION)
 
+        logging.info("sbuild-update'ing %s tarball." % (self,))
         utils.run_cmd(['sbuild-update',
                        '-udcar',
                        '%s' % (self.series.name,),
@@ -417,6 +428,11 @@ class BuildRecord(models.Model):
     def __unicode__(self):
         return ('Build of %s_%s_%s' %
                 (self.source_package_name, self.version, self.architecture))
+
+    def update_state(self, new_state):
+        self.__class__.objects.filter(id=self.id).update(state=new_state)
+        # Also update this cached object
+        self.state = new_state
 
     @classmethod
     def pending_builds(cls):
@@ -552,6 +568,11 @@ class BuildNode(models.Model):
         log(lbuf)
         return out
 
+    def update_state(self, new_state):
+        self.__class__.objects.filter(id=self.id).update(state=new_state)
+        # Also update this cached object
+        self.state = new_state
+
     def prepare(self, build_record):
         self.state = self.BOOTING
         self.save()
@@ -600,8 +621,8 @@ class BuildNode(models.Model):
             self.delete()
 
     def build(self, build_record):
-        self.state = self.BUILDING
-        self.save()
+        self.update_state(BuildNode.BUILDING)
+        build_record.update_state(BuildRecord.BUILDING)
         try:
             series = build_record.series
             self._run_cmd('mkdir build')
@@ -620,8 +641,8 @@ class BuildNode(models.Model):
         except Exception:
             pass
 
-        self.state = self.SHUTTING_DOWN
-        self.save()
+        build_record.update_state(BuildRecord.SUCCESFULLY_BUILT)
+        self.update_state(BuildNode.SHUTTING_DOWN)
 
     @classmethod
     def get_unique_keypair_name(cls, cl):
@@ -644,25 +665,39 @@ class BuildNode(models.Model):
     @classmethod
     def start_new(cls):
         cloud = random.choice(Cloud.objects.all())
+        logger.info('Picked cloud %s' % (cloud,))
         cl = cloud.client
         if cloud.keypair_set.count() < 1:
+            logger.info('Cloud %s does not have a keypair yet. '
+                        'Creating' % (cloud,))
             name = cls.get_unique_keypair_name(cl)
             kp = cl.keypairs.create(name=name)
             keypair = KeyPair(cloud=cloud, name=name,
                               private_key=kp.private_key,
                               public_key=kp.public_key)
             keypair.save()
+            logger.info('KeyPair %s created' % (keypair,))
         else:
             keypair = cloud.keypair_set.all()[0]
+        logger.debug('Using cached keypair: %s' % (keypair,))
 
         name = cls.get_unique_buildnode_name(cl)
         flavor = utils.get_flavor_by_name(cl, cl.cloud.flavor_name)
         image = utils.get_image_by_regex(cl, cl.cloud.image_name)
 
+        logger.info('Creating server %s on cloud %s' % (name, cloud))
         srv = cl.servers.create(name, image, flavor, key_name=keypair.name)
 
         if getattr(settings, 'USE_FLOATING_IPS', False):
+            logger.info('Grabbing floating ip for server %s on cloud %s' %
+                        (name, cloud))
             floating_ip = cl.floating_ips.create()
+            logger.info('Got floating ip %s for server %s on cloud %s' %
+                        (floating_ip.ip, name, cloud))
+
+            logger.debug('Assigning floating ip %s to server %s on cloud %s.'
+                         'Timing out in 20 seconds.' % (floating_ip.ip,
+                                                        name, cloud))
 
             timeout = time.time() + 20
             succeeded = False
@@ -674,10 +709,18 @@ class BuildNode(models.Model):
                     pass
                 time.sleep(1)
 
-            if not succeeded:
+            if succeeded:
+                logger.info('Assigned floating ip %s to server %s on cloud %s.'
+                            % (floating_ip.ip, name, cloud))
+            else:
+                logger.error('Failed to assign floating ip %s to server %s on '
+                             'cloud %s' % (floating_ip.ip, name, cloud))
+                logger.info('Deleting server %s on cloud %s' % (name, cloud))
                 srv.delete()
+                logger.info('Deleting floating ip %s on cloud %s' %
+                            (floating_ip.ip, cloud))
+                floating_ip.delete()
                 raise Exception('Failed to spawn node')
-
 
         bn = BuildNode(name=name, cloud=cloud, cloud_node_id=srv.id)
         bn.save()
@@ -701,16 +744,28 @@ class BuildNode(models.Model):
         if getattr(settings, 'USE_FLOATING_IPS', False):
             floating_ip = self.ip
             ref = self.cloud.client.floating_ips.find(ip=floating_ip)
+            logger.info('Unassigning floating ip %s from server %s on '
+                        'cloud %s.' % (floating_ip, self, self.cloud))
             self.cloud_server.remove_floating_ip(floating_ip)
+            logger.info('Deleting floating ip %s on cloud %s.' %
+                        (floating_ip, self, self.cloud))
             ref.delete()
 
+        logger.info('Deleting server %s on cloud %s.' %
+                    (self, self.cloud))
         self.cloud_server.delete()
 
         if self.signing_key_id:
+            logger.info('Deleting signing key for build node %s: %s' %
+                        (self, self.signing_key_id))
             utils.run_cmd(['gpg', '--batch', '--yes',
                            '--delete-keys', self.signing_key_id])
 
+        logger.debug('Removing all references from BuildRecords to '
+                     'BuildNode %s' % (self,))
         self.buildrecord_set.all().update(build_node=None)
+
+        logger.info('Deleting BuildNode %s' % (self,))
         super(BuildNode, self).delete()
 
     @property
@@ -730,7 +785,7 @@ class BuildNode(models.Model):
         return ssh
 
     def run_cmd(self, cmd, input=None):
-        print 'Running: %s' % (cmd,)
+        logger.debug('Running: %s' % (cmd,))
 
         ssh = self.ssh_client()
         transport = ssh.get_transport()
