@@ -95,7 +95,7 @@ class Repository(models.Model):
         return BuildNode.objects.filter(buildrecord__series__repository=self)
 
     def write_configuration(self):
-        logging.debug('Writing out config for %s' % (self.name,))
+        logger.debug('Writing out config for %s' % (self.name,))
 
         confdir = '%s/conf' % (self.reprepro_dir,)
 
@@ -232,7 +232,7 @@ class Series(models.Model):
         self.save()
 
     def flush_queue(self):
-        logging.info('Flushing queue for %s' % (self,))
+        logger.info('Flushing queue for %s' % (self,))
         self.repository._reprepro('pull', '%s-proposed' % (self.name, ))
 
     def get_source_packages(self):
@@ -321,10 +321,10 @@ class ChrootTarball(models.Model):
 
     def refresh(self, proxy=False, mirror=False):
         if self.state == self.CURRENTLY_BUILDING:
-            logging.info('Already building %s. '
-                         'Ignoring request to refresh.' % (self,))
+            logger.info('Already building %s. '
+                        'Ignoring request to refresh.' % (self,))
             return
-        logging.info('Refreshing %s tarball.' % (self,))
+        logger.info('Refreshing %s tarball.' % (self,))
 
         self.state = self.CURRENTLY_BUILDING
         self.save()
@@ -342,8 +342,8 @@ class ChrootTarball(models.Model):
                                         self.architecture.name)
 
         if expected not in stdout.split('\n'):
-            logging.info('Existing schroot for %s not found. '
-                         'Starting from scratch.' % (self,))
+            logger.info('Existing schroot for %s not found. '
+                        'Starting from scratch.' % (self,))
 
             def _run_in_chroot(cmd, input=None):
                 series_name = self.series.name
@@ -376,7 +376,7 @@ class ChrootTarball(models.Model):
             if hasattr(settings, 'POST_MK_SBUILD_CUSTOMISATION'):
                 _run_in_chroot(settings.POST_MK_SBUILD_CUSTOMISATION)
 
-        logging.info("sbuild-update'ing %s tarball." % (self,))
+        logger.info("sbuild-update'ing %s tarball." % (self,))
         utils.run_cmd(['sbuild-update',
                        '-udcar',
                        '%s' % (self.series.name,),
