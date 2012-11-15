@@ -708,6 +708,8 @@ class BuildNode(models.Model):
         if self.signing_key_id:
             utils.run_cmd(['gpg', '--batch', '--yes',
                            '--delete-keys', self.signing_key_id])
+
+        self.buildrecord_set.all().update(build_node=None)
         super(BuildNode, self).delete()
 
     @property
