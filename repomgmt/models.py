@@ -748,7 +748,7 @@ class BuildNode(models.Model):
                         'cloud %s.' % (floating_ip, self, self.cloud))
             self.cloud_server.remove_floating_ip(floating_ip)
             logger.info('Deleting floating ip %s on cloud %s.' %
-                        (floating_ip, self, self.cloud))
+                        (floating_ip, self.cloud))
             ref.delete()
 
         logger.info('Deleting server %s on cloud %s.' %
