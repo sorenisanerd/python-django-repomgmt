@@ -735,9 +735,10 @@ class BuildNode(models.Model):
     @property
     def ip(self):
         if getattr(settings, 'USE_FLOATING_IPS', False):
-            index = 1
+            index = -1
         else:
             index = 0
+
         return self.cloud_server.networks.values()[0][index]
 
     def delete(self):
@@ -917,51 +918,81 @@ class PackageSource(models.Model):
             return out.split('\n')[0].split('\t')[0]
 
     def poll(self):
+        logging.info('Polling %s' % (self,))
+
         current_code_revision = self.lookup_revision(self.code_url)
+        logging.info('Current code revision for %s: %s' %
+                      (self, current_code_revision))
+
         current_pkg_revision = self.lookup_revision(self.packaging_url)
+        logging.info('Current packaging revision for %s: %s' %
+                      (self, current_pkg_revision))
+
+        logging.debug('Last known code revision for %s: %s' %
+                      (self, self.last_seen_code_rev))
+        logging.debug('Last known packaging revision for %s: %s' %
+                      (self, self.last_seen_pkg_rev))
 
         something_changed = False
+
         if self.last_seen_code_rev != current_code_revision:
+            logging.debug('Code for %s was updated.' % (self,))
             something_changed = True
-            try:
-                cache_entry = TarballCacheEntry.objects.get(rev_id=current_code_revision)
-            except TarballCacheEntry.DoesNotExist:
-                tmpdir = tempfile.mkdtemp()
-                codedir = os.path.join(tmpdir, 'checkout')
-                PackageSource._checkout_code(self.code_url, codedir,
-                                             current_code_revision)
 
-                if self.flavor == self.OPENSTACK:
-                    project_name = utils.run_cmd(['python', 'setup.py', '--name'],
-                                                 cwd=codedir).strip().split('\n')[-1]
-                    project_version = utils.run_cmd(['python', 'setup.py',
-                                                    '--version'],
-                                                    cwd=codedir).strip().split('\n')[-1]
-
-                    cache_entry = TarballCacheEntry(project_name=project_name,
-                                                    project_version=project_version,
-                                                    rev_id=current_code_revision)
-
-                    utils.run_cmd(['python', 'setup.py', 'sdist'], cwd=codedir)
-                    tarballs_in_dist = glob.glob(os.path.join(codedir,
-                                                              'dist',
-                                                              '*.tar.gz'))
-                    if len(tarballs_in_dist) != 1:
-                        raise Exception('Found %d tarballs after '
-                                        '"python setup.py sdist". Expected 1.')
-
-                    cache_entry.store_file(tarballs_in_dist[0])
-                    cache_entry.save()
-
-                    shutil.rmtree(tmpdir)
-        else:
+        try:
+            logging.debug('Checking to see if we already have %s cached' %
+                          (current_code_revision,))
             cache_entry = TarballCacheEntry.objects.get(rev_id=current_code_revision)
+        except TarballCacheEntry.DoesNotExist:
+            logging.debug('Did not have %s cached' %
+                          (current_code_revision,))
+            logging.info('Building tarball for %s (%s)' %
+                         (self, current_code_revision,))
+
+            tmpdir = tempfile.mkdtemp()
+            codedir = os.path.join(tmpdir, 'checkout')
+            logging.debug('Checking out %s' % (current_code_revision,))
+            PackageSource._checkout_code(self.code_url, codedir,
+                                         current_code_revision)
+
+            if self.flavor == self.OPENSTACK:
+                project_name = utils.run_cmd(['python', 'setup.py', '--name'],
+                                             cwd=codedir).strip().split('\n')[-1]
+                project_version = utils.run_cmd(['python', 'setup.py',
+                                                '--version'],
+                                                cwd=codedir).strip().split('\n')[-1]
+
+                logger.debug('Project name: %s, Version: %s' %
+                             (project_name, project_version))
+
+                cache_entry = TarballCacheEntry(project_name=project_name,
+                                                project_version=project_version,
+                                                rev_id=current_code_revision)
+
+                utils.run_cmd(['python', 'setup.py', 'sdist'], cwd=codedir)
+                tarballs_in_dist = glob.glob(os.path.join(codedir,
+                                                          'dist',
+                                                          '*.tar.gz'))
+                if len(tarballs_in_dist) != 1:
+                    raise Exception('Found %d tarballs after '
+                                    '"python setup.py sdist". Expected 1.')
+
+                cache_entry.store_file(tarballs_in_dist[0])
+                cache_entry.save()
+
+                shutil.rmtree(tmpdir)
 
         if self.last_seen_pkg_rev != current_pkg_revision:
+            logging.debug('Packaging for %s was updated.' % (self,))
             something_changed = True
 
         if something_changed:
+            logging.debug('%s has changed. Building source packages.' % (self,))
+
             for subscription in self.subscription_set.all():
+                logging.debug('Building %s for %s.' %
+                              (self, subscription.target_series))
+
                 tmpdir = tempfile.mkdtemp()
                 pkgdir = os.path.join(tmpdir, 'checkout')
                 PackageSource._checkout_code(self.packaging_url, pkgdir,
