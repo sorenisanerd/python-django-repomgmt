@@ -62,7 +62,7 @@ cat <<EOF > "${CHROOT_PATH}/repo.key"
 {{ build_record.series.repository.signing_key.public_key }}
 EOF
 
-chroot "${CHROOT_PATH}/usr/bin/apt-key" add /repo.key
+chroot "${CHROOT_PATH}" /usr/bin/apt-key add /repo.key
 
 ' }
 
