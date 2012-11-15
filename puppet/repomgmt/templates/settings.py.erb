@@ -188,6 +188,7 @@ BASE_TARBALL_URL = 'http://%s/tarballs/' % (floating_ip,)
 <% else %>
 
 FTP_IP = <%= ftp_ip %>
+FTP_BASE_PATH = "/incoming"
 BASE_URL = "http://<%= hostname %>:<%= port %>"
 APT_REPO_BASE_URL = "%s/repos/" % (BASE_URL,)
 BASE_TARBALL_URL = '%s/tarballs/' % (BASE_URL,)
@@ -200,6 +201,8 @@ TARBALL_DIR = os.path.join(os.environ['HOME'], 'tarballs')
 GIT_CACHE_DIR = os.path.join(os.environ['HOME'], 'gitcache')
 BASE_REPO_DIR = os.path.join(os.environ['HOME'], 'repos')
 BASE_PUBLIC_REPO_DIR = os.path.join(os.environ['HOME'], 'public')
+
+USE_FLOATING_IPS = True
 
 # Enable Celery
 import djcelery
