@@ -58,6 +58,12 @@ if [ $STAGE = "setup-start" ] || [ $STAGE = "setup-recover" ]; then
     echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
 fi
 
+cat <<EOF > /repo.key
+{{ build_record.series.repository.signing_key.public_key }}
+EOF
+
+apt-key add /repo.key
+
 ' }
 
 file { "/home/ubuntu/.dput.cf":
@@ -69,11 +75,4 @@ login    = anonymous
 incoming = {{ settings.FTP_BASE_PATH }}/{{ build_record.series.repository.name }}/
 ',
   owner => ubuntu
-}
-
-file { "/home/ubuntu/repo.key":
-    content => '{{ build_record.series.repository.signing_key.public_key }}'
-} ->
-exec { "/usr/bin/apt-key add /home/ubuntu/repo.key":
-  user => "root"
 }
