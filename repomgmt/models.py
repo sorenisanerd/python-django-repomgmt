@@ -430,7 +430,7 @@ class BuildRecord(models.Model):
                 (self.source_package_name, self.version, self.architecture))
 
     def update_state(self, new_state):
-        self.__class__.objects.filter(id=self.id).update(state=new_state)
+        self.__class__.objects.filter(pk=self.pk).update(state=new_state)
         # Also update this cached object
         self.state = new_state
 
@@ -569,7 +569,7 @@ class BuildNode(models.Model):
         return out
 
     def update_state(self, new_state):
-        self.__class__.objects.filter(id=self.id).update(state=new_state)
+        self.__class__.objects.filter(pk=self.pk).update(state=new_state)
         # Also update this cached object
         self.state = new_state
 
