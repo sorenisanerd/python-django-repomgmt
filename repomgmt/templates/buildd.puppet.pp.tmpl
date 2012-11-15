@@ -53,9 +53,9 @@ fi
 
 if [ $STAGE = "setup-start" ] || [ $STAGE = "setup-recover" ]; then
     echo "deb     {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }} main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
-    echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }} main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
-    echo "deb     {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
-    echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" > "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+    echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }} main" >> "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+    echo "deb     {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" >> "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
+    echo "deb-src {{ settings.APT_REPO_BASE_URL }}/{{ build_record.series.repository.name }} {{ build_record.series.name }}-proposed main" >> "${CHROOT_PATH}/etc/apt/sources.list.d/{{ build_record.series.repository.name }}-{{ build_record.series.name }}.list"
 fi
 
 cat <<EOF > "${CHROOT_PATH}/repo.key"
