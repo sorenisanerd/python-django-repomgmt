@@ -4,12 +4,14 @@
 <table class="table table-striped">
   <tr>
     <th>Name</th>
+    <th>State</th>
     <th>Current task</th>
     <th>Expected finish time of current task</th>
   </tr>
 {% for node in build_nodes %}
   <tr>
     <td>{{ node.name }}</td>
+    <td>{{ node.get_state_display }}</td>
     <td>None</td>
     <td>N/A</td>
   </tr>
