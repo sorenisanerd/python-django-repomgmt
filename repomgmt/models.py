@@ -1047,6 +1047,8 @@ class PackageSource(models.Model):
 
                 utils.run_cmd(['dput', '-c', '%s/conf/dput.cf' % subscription.target_series.repository.reprepro_dir,
                                'autopush', changes_files[0]])
+                subscription.counter += 1
+                subscription.save()
 
             self.last_seen_code_rev = current_code_revision
             self.last_seen_pkg_rev = current_pkg_revision
