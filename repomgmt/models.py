@@ -939,40 +939,40 @@ class PackageSource(models.Model):
             return out.split('\n')[0].split('\t')[0]
 
     def poll(self):
-        logging.info('Polling %s' % (self,))
+        logger.info('Polling %s' % (self,))
 
         current_code_revision = self.lookup_revision(self.code_url)
-        logging.info('Current code revision for %s: %s' %
-                      (self, current_code_revision))
+        logger.info('Current code revision for %s: %s' %
+                    (self, current_code_revision))
 
         current_pkg_revision = self.lookup_revision(self.packaging_url)
-        logging.info('Current packaging revision for %s: %s' %
-                      (self, current_pkg_revision))
+        logger.info('Current packaging revision for %s: %s' %
+                    (self, current_pkg_revision))
 
-        logging.debug('Last known code revision for %s: %s' %
-                      (self, self.last_seen_code_rev))
-        logging.debug('Last known packaging revision for %s: %s' %
-                      (self, self.last_seen_pkg_rev))
+        logger.debug('Last known code revision for %s: %s' %
+                     (self, self.last_seen_code_rev))
+        logger.debug('Last known packaging revision for %s: %s' %
+                     (self, self.last_seen_pkg_rev))
 
         something_changed = False
 
         if self.last_seen_code_rev != current_code_revision:
-            logging.debug('Code for %s was updated.' % (self,))
+            logger.debug('Code for %s was updated.' % (self,))
             something_changed = True
 
         try:
-            logging.debug('Checking to see if we already have %s cached' %
-                          (current_code_revision,))
+            logger.debug('Checking to see if we already have %s cached' %
+                         (current_code_revision,))
             cache_entry = TarballCacheEntry.objects.get(rev_id=current_code_revision)
         except TarballCacheEntry.DoesNotExist:
-            logging.debug('Did not have %s cached' %
-                          (current_code_revision,))
-            logging.info('Building tarball for %s (%s)' %
-                         (self, current_code_revision,))
+            logger.debug('Did not have %s cached' %
+                         (current_code_revision,))
+            logger.info('Building tarball for %s (%s)' %
+                        (self, current_code_revision,))
 
             tmpdir = tempfile.mkdtemp()
             codedir = os.path.join(tmpdir, 'checkout')
-            logging.debug('Checking out %s' % (current_code_revision,))
+            logger.debug('Checking out %s' % (current_code_revision,))
             PackageSource._checkout_code(self.code_url, codedir,
                                          current_code_revision)
 
@@ -1004,15 +1004,15 @@ class PackageSource(models.Model):
                 shutil.rmtree(tmpdir)
 
         if self.last_seen_pkg_rev != current_pkg_revision:
-            logging.debug('Packaging for %s was updated.' % (self,))
+            logger.debug('Packaging for %s was updated.' % (self,))
             something_changed = True
 
         if something_changed:
-            logging.debug('%s has changed. Building source packages.' % (self,))
+            logger.debug('%s has changed. Building source packages.' % (self,))
 
             for subscription in self.subscription_set.all():
-                logging.debug('Building %s for %s.' %
-                              (self, subscription.target_series))
+                logger.debug('Building %s for %s.' %
+                             (self, subscription.target_series))
 
                 tmpdir = tempfile.mkdtemp()
                 pkgdir = os.path.join(tmpdir, 'checkout')
