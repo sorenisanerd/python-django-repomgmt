@@ -646,7 +646,11 @@ class BuildNode(models.Model):
 
             with open(os.path.join(settings.BUILD_LOG_DIR,
                                    str(build_record.pk)), 'a') as fp:
-                self._run_cmd(sbuild_cmd, output_callback=fp.write)
+                def write_and_flush(s):
+                    fp.write(s)
+                    fp.flush()
+
+                self._run_cmd(sbuild_cmd, output_callback=write_and_flush)
 
             self._run_cmd('cd build; dput return *.changes')
             success = True
