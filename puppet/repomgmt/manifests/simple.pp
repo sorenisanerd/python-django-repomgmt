@@ -1,5 +1,5 @@
 class repomgmt($user = 'ubuntu') {
-  $simple = true;
+  $simple = true
 
   package { ["python-pip",
              "devscripts",

@@ -11,7 +11,7 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-    'ENGINE': 'mysql',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': '<%= dbname %>',
         'USER': '<%= dbuser %>',
         'PASSWORD': '<%= dbpass %>',
@@ -183,16 +183,16 @@ FTP_IP = fixed_ip
 FTP_BASE_PATH = "/incoming"
 BASE_URL = "http://%s:8000" % (floating_ip,)
 APT_REPO_BASE_URL = "http://%s/repos/" % (floating_ip,)
-BASE_TARBALL_URL = 'http://%s/tarballs/' % (floating_ip,)
+BASE_TARBALL_URL = 'http://%s/tbdownload/' % (floating_ip,)
 BASE_BUILD_LOG_URL = 'http://%s/buildlogs/' % (floating_ip,)
 
 <% else %>
 
-FTP_IP = <%= ftp_ip %>
+FTP_IP = "<%= ftp_ip %>"
 FTP_BASE_PATH = "/incoming"
 BASE_URL = "http://<%= hostname %>:<%= port %>"
 APT_REPO_BASE_URL = "%s/repos/" % (BASE_URL,)
-BASE_TARBALL_URL = '%s/tarballs/' % (BASE_URL,)
+BASE_TARBALL_URL = '%s/tbdownload/' % (BASE_URL,)
 BASE_BUILD_LOG_URL = '%s/buildlogs/' % (BASE_URL,)
 
 <% end %>
@@ -206,6 +206,10 @@ BASE_PUBLIC_REPO_DIR = os.path.join(os.environ['HOME'], 'public')
 BUILD_LOG_DIR = os.path.join(os.environ['HOME'], 'buildlogs')
 
 USE_FLOATING_IPS = True
+
+<% if post_mk_sbuild_customisation %>
+POST_MK_SBUILD_CUSTOMISATION = <%= post_mk_sbuild_customisation %>
+<% end %>
 
 # Enable Celery
 import djcelery

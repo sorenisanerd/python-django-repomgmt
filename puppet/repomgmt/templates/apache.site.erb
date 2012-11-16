@@ -3,7 +3,7 @@
     DocumentRoot /home/<%= user %>/www
 
     Alias /static /home/<%= user %>/www/static
-    Alias /tarballs /var/lib/schroot/tarballs
+    Alias /tbdownload /var/lib/schroot/tarballs
     Alias /repos /home/<%= user %>/public
     Alias /buildlogs /home/<%= user %>/buildlogs
 
@@ -13,7 +13,7 @@
         Allow from all
     </Directory>
 
-    WSGIScriptAlias / /home/buildd/www/wsgi.py
+    WSGIScriptAlias / /home/buildd/www/www/wsgi.py
     WSGIDaemonProcess buildd user=buildd
     WSGIProcessGroup buildd
 </VirtualHost>

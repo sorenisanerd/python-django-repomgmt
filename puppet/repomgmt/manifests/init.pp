@@ -2,31 +2,31 @@ class repomgmt($user = 'buildd',
                $port = '80',
                $hostname,
                $priority = '30',
-               admin_name => "Admin User",
-               admin_email => "email@example.com"
-               dbname => "repomgmt",
-               dbuser => "repomgmt",
-               dbpass => "repomgmtpass",
-               dbhost => "",
-               dbport => ""
-               secret_key => '!tuy9ozxr@zhr$8v3$41^3690dfnrim16yj8x5)4pi0bg%140l',
-               ftp_ip => $::ipaddress,
+               $admin_name = "Admin User",
+               $admin_email = "email@example.com",
+               $dbname = "repomgmt",
+               $dbuser = "repomgmt",
+               $dbpass = "repomgmtpass",
+               $dbhost = "",
+               $dbport = "",
+               $secret_key = '!tuy9ozxr@zhr$8v3$41^3690dfnrim16yj8x5)4pi0bg%140l',
+               $ftp_ip = $::ipaddress,
+               $post_mk_sbuild_customisation = undef
                ) {
   
   include apache 
 
-  $simple = false;
+  $simple = false
 
   apache::vhost { "repomgmt":
     priority           => $priority,
     port               => $port,
     template           => "repomgmt/apache.site.erb",
-    doctroot           => "/home/$user/www",
+    docroot            => "/home/$user/www",
     configure_firewall => false
   }
 
-  package { ["python-pip",
-             "devscripts",
+  package { ["devscripts",
              "sbuild",
              "git",
              "rabbitmq-server",
@@ -67,7 +67,7 @@ class repomgmt($user = 'buildd',
   }
 
   exec { "/usr/local/bin/django-admin.py startproject www":
-    creates => "/home/$user/www",
+    creates => "/home/$user/www/www",
     cwd => "/home/$user",
     user => $user
   } ->
@@ -80,6 +80,14 @@ class repomgmt($user = 'buildd',
     owner => $user
   } ~>
   exec { "/usr/bin/python /home/$user/www/manage.py syncdb --noinput":
+    user => $user,
+    refreshonly => true
+  } ~>
+  exec { "/usr/bin/python /home/$user/www/manage.py migrate djcelery --noinput":
+    user => $user,
+    refreshonly => true
+  } ~>
+  exec { "/usr/bin/python /home/$user/www/manage.py migrate repomgmt --noinput":
     user => $user,
     refreshonly => true
   }
@@ -99,6 +107,11 @@ class repomgmt($user = 'buildd',
     group => ftp,
     mode => "2711",
     require => Package[vsftpd],
+  }
+
+  cron { "celeryworker":
+    command => "cd /home/$user/www ; run-one screen -DmS celeryworker bash -c 'python manage.py celery worker -B'",
+    user    => "$user",
   }
 
   exec { "reload-vsftpd":
