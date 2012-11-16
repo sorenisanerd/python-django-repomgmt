@@ -557,9 +557,12 @@ class BuildNode(models.Model):
                 log(line)
             return lbuf
 
+        output_callback = kwargs.pop('output_callback', lambda _: None)
+
         out = ''
         lbuf = ''
         for data in self.run_cmd(cmd, *args, **kwargs):
+            output_callback(data)
             out += data
             lbuf += data
             lbuf = log_whole_lines(lbuf)
@@ -637,7 +640,14 @@ class BuildNode(models.Model):
 
             sbuild_cmd += ('%s_%s' % (build_record.source_package_name,
                                       build_record.version))
-            self._run_cmd(sbuild_cmd)
+
+            if not os.path.exists(settings.BUILD_LOG_DIR):
+                os.makedirs(settings.BUILD_LOG_DIR)
+
+            with open(os.path.join(settings.BUILD_LOG_DIR,
+                                   str(build_record.pk)), 'a') as fp:
+                self._run_cmd(sbuild_cmd, output_callback=fp.write)
+
             self._run_cmd('cd build; dput return *.changes')
             success = True
         except Exception:
