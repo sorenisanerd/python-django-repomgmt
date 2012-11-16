@@ -171,6 +171,8 @@ def package_list(request, repository_name, series_name):
 
 
 def promote_series(request):
+    # Disabled until we have authorization in place
+    return
     if request.method == 'POST':
         if not 'repository' in request.POST or not 'series' in request.POST:
             return
