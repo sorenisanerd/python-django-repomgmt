@@ -645,7 +645,7 @@ class BuildNode(models.Model):
                 os.makedirs(settings.BUILD_LOG_DIR)
 
             with open(os.path.join(settings.BUILD_LOG_DIR,
-                                   str(build_record.pk)), 'a') as fp:
+                                   '%s.log.txt' % build_record.pk), 'a') as fp:
                 def write_and_flush(s):
                     fp.write(s)
                     fp.flush()
