@@ -1081,18 +1081,36 @@ class PackageSource(models.Model):
                 utils.run_cmd(['git', 'show', revision, '--'],
                               cwd=settings.GIT_CACHE_DIR)
             except CommandFailed:
-                fetch_cmd = ['git', 'fetch']
+                # Fetch all the needed objects and store them in the cache
+                sanitized_url = url.replace([':', '/'], ['_', '_'])
 
-                if '#' in url:
-                    fetch_cmd += url.split('#')
-                else:
-                    fetch_cmd += [url]
+                remotes = utils.run_cmd(['git', 'remote'],
+                                        cwd=settings.GIT_CACHE_DIR).split('\n')
 
-                utils.run_cmd(fetch_cmd, cwd=settings.GIT_CACHE_DIR)
+                if not sanitized_url in remotes:
+                    utils.run_cmd(['git', 'remote', 'add', sanitized_url, url],
+                                  cwd=settings.GIT_CACHE_DIR)
+
+                utils.run_cmd(['git', 'fetch', sanitized_url],
+                              cwd=settings.GIT_CACHE_DIR)
 
             if not os.path.exists(destdir):
-                utils.run_cmd(['git', 'clone', '--shared',
-                               settings.GIT_CACHE_DIR, destdir])
+                # Clones the real repo, but uses the cache as a reference.
+                # This saves bandwidth (we know for sure the objects are
+                # already there, and gets us a fully usable repo with tags
+                # and everything.
+                clone_cmd = ['git', 'clone', '--reference',
+                             settings.GIT_CACHE_DIR]
+
+                if '#' in url:
+                    clone_url, clone_branch = url.split('#')
+                    clone_cmd += ['-b', clone_branch, clone_url]
+                else:
+                    clone_cmd += [clone_url]
+
+                clone_cmd += [destdir]
+
+                utils.run_cmd(clone_cmd)
 
             utils.run_cmd(['git', 'reset', '--hard', revision], cwd=destdir)
             utils.run_cmd(['git', 'clean', '-dfx'], cwd=destdir)
