@@ -1168,13 +1168,20 @@ class PackageSource(models.Model):
                               cwd=settings.GIT_CACHE_DIR)
             except CommandFailed:
                 # Fetch all the needed objects and store them in the cache
-                sanitized_url = url.replace(':', '_').replace('/', '_')
+                if '#' in url:
+                    branchless_url, branch = url.split('#')
+                else:
+                    branchless_url = url
+
+                sanitized_url = branchless_url.replace(':', '_'
+                                             ).replace('/', '_')
 
                 remotes = utils.run_cmd(['git', 'remote'],
                                         cwd=settings.GIT_CACHE_DIR).split('\n')
 
                 if not sanitized_url in remotes:
-                    utils.run_cmd(['git', 'remote', 'add', sanitized_url, url],
+                    utils.run_cmd(['git', 'remote', 'add', sanitized_url,
+                                   branchless_url],
                                   cwd=settings.GIT_CACHE_DIR)
 
                 utils.run_cmd(['git', 'fetch', sanitized_url],
