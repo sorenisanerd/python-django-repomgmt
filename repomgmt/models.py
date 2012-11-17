@@ -1070,7 +1070,7 @@ class PackageSource(models.Model):
 
             tarball_creator = tarball_creator_class(self.code_url,
                                                     current_code_revision)
-            cache_entry = tarball_creator.create()
+            cache_entry = tarball_creator.build()
             tarball_creator.cleanup()
 
         if self.last_seen_pkg_rev != current_pkg_revision:
