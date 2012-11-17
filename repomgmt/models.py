@@ -1124,7 +1124,7 @@ class PackageSource(models.Model):
                                ],
                               cwd=pkgdir)
 
-                changes_files = glob.glob(os.path.join(tmpdir, '*.changes'))
+                changes_files = glob(os.path.join(tmpdir, '*.changes'))
 
                 if len(changes_files) != 1:
                     raise Exception('Unexpected number of changes files: %d' % len(changes_files))
