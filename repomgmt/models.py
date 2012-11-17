@@ -15,7 +15,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-import glob
+from datetime import date
+from glob import glob
 import logging
 import os
 import os.path
@@ -50,7 +51,6 @@ from repomgmt import utils
 from repomgmt.exceptions import CommandFailed
 
 logger = logging.getLogger(__name__)
-
 
 class Repository(models.Model):
     name = models.CharField(max_length=200, primary_key=True)
@@ -892,10 +892,106 @@ class TarballCacheEntry(models.Model):
 
 class PackageSource(models.Model):
     OPENSTACK = 'OpenStack'
+    PUPPET = 'Puppet'
 
     PACKAGING_FLAVORS = (
         (OPENSTACK, 'OpenStack'),
+        (PUPPET, 'Puppet'),
     )
+
+    class TarballCreator(object):
+        def __init__(self, url, revision):
+            self.url = url
+            self.revision = revision
+            self.tmpdir = tempfile.mkdtemp()
+            self.codedir = os.path.join(self.tmpdir, 'checkout')
+
+            logger.debug('Checking out %s' % (revision,))
+            PackageSource._checkout_code(self.url, self.codedir,
+                                         revision)
+
+        def cleanup(self):
+            shutil.rmtree(self.tmpdir)
+
+        def get_project_name(self):
+            raise NotImplementedError()
+
+        def get_project_version(self):
+            raise NotImplementedError()
+
+        def build_tarball(self):
+            raise NotImplementedError()
+
+        def build(self, create_cache_entry=True):
+            self.project_name = self.get_project_name()
+            self.project_version = self.get_project_version()
+
+            logger.debug('Project name: %s, Version: %s' %
+                         (self.project_name, self.project_version))
+
+            cache_entry = TarballCacheEntry(project_name=self.project_name,
+                                            project_version=self.project_version,
+                                            rev_id=self.revision)
+
+            tarball = self.build_tarball()
+
+            if settings.TESTING or not create_cache_entry:
+                print 'Got %s' % (tarball,)
+            else:
+                cache_entry.store_file(tarball)
+                cache_entry.save()
+
+            return cache_entry
+
+    class PuppetTarballCreator(TarballCreator):
+        def get_project_name(self):
+            url = self.url.split('#')[0]
+            project_name = os.path.split(url)[-1]
+
+            if project_name.endswith('.git'):
+                project_name = project_name[:-4]
+
+            return project_name
+
+        def get_project_version(self):
+            return date.today().strftime('%Y%m%d')
+
+        def build_tarball(self):
+            tarball = os.path.join(self.tmpdir,
+                                   '%s-%s.tar.gz' % (self.project_name,
+                                                     self.project_version))
+
+            utils.run_cmd(['tar', 'cvzf', tarball,
+                           '--xform=s,%s,%s-%s,g' % (self.codedir[1:],
+                                                     self.project_name,
+                                                     self.project_version),
+                           '--exclude=%s' % (os.path.join(self.codedir, '.git'),),
+                           '--exclude=%s' % (os.path.join(self.codedir, '.bzr'),),
+                           self.codedir])
+
+            return tarball
+
+    class OpenStackTarballCreator(TarballCreator):
+        def get_project_name(self):
+            return utils.run_cmd(['python', 'setup.py', '--name'],
+                                 cwd=self.codedir).strip().split('\n')[-1]
+
+        def get_project_version(self):
+            return utils.run_cmd(['python', 'setup.py', '--version'],
+                                 cwd=self.codedir).strip().split('\n')[-1]
+
+        def build_tarball(self):
+            utils.run_cmd(['python', 'setup.py', 'sdist'], cwd=self.codedir)
+            tarballs_in_dist = glob(os.path.join(self.codedir, 'dist', '*.tar.gz'))
+
+            if len(tarballs_in_dist) != 1:
+                raise Exception('Found %d tarballs after "python setup.py sdist". '
+                                'Expected 1.')
+
+            return tarballs_in_dist[0]
+
+    TARBALL_CREATOR_CLASS = {OPENSTACK: OpenStackTarballCreator,
+                             PUPPET: PuppetTarballCreator}
 
     name = models.CharField(max_length=200)
     code_url = models.CharField(max_length=200,
@@ -970,38 +1066,12 @@ class PackageSource(models.Model):
             logger.info('Building tarball for %s (%s)' %
                         (self, current_code_revision,))
 
-            tmpdir = tempfile.mkdtemp()
-            codedir = os.path.join(tmpdir, 'checkout')
-            logger.debug('Checking out %s' % (current_code_revision,))
-            PackageSource._checkout_code(self.code_url, codedir,
-                                         current_code_revision)
+            tarball_creator_class = self.TARBALL_CREATOR_CLASS[self.flavor]
 
-            if self.flavor == self.OPENSTACK:
-                project_name = utils.run_cmd(['python', 'setup.py', '--name'],
-                                             cwd=codedir).strip().split('\n')[-1]
-                project_version = utils.run_cmd(['python', 'setup.py',
-                                                '--version'],
-                                                cwd=codedir).strip().split('\n')[-1]
-
-                logger.debug('Project name: %s, Version: %s' %
-                             (project_name, project_version))
-
-                cache_entry = TarballCacheEntry(project_name=project_name,
-                                                project_version=project_version,
-                                                rev_id=current_code_revision)
-
-                utils.run_cmd(['python', 'setup.py', 'sdist'], cwd=codedir)
-                tarballs_in_dist = glob.glob(os.path.join(codedir,
-                                                          'dist',
-                                                          '*.tar.gz'))
-                if len(tarballs_in_dist) != 1:
-                    raise Exception('Found %d tarballs after '
-                                    '"python setup.py sdist". Expected 1.')
-
-                cache_entry.store_file(tarballs_in_dist[0])
-                cache_entry.save()
-
-                shutil.rmtree(tmpdir)
+            tarball_creator = tarball_creator_class(self.code_url,
+                                                    current_code_revision)
+            cache_entry = tarball_creator.create()
+            tarball_creator.cleanup()
 
         if self.last_seen_pkg_rev != current_pkg_revision:
             logger.debug('Packaging for %s was updated.' % (self,))
@@ -1098,7 +1168,7 @@ class PackageSource(models.Model):
                               cwd=settings.GIT_CACHE_DIR)
             except CommandFailed:
                 # Fetch all the needed objects and store them in the cache
-                sanitized_url = url.replace([':', '/'], ['_', '_'])
+                sanitized_url = url.replace(':', '_').replace('/', '_')
 
                 remotes = utils.run_cmd(['git', 'remote'],
                                         cwd=settings.GIT_CACHE_DIR).split('\n')
@@ -1122,7 +1192,7 @@ class PackageSource(models.Model):
                     clone_url, clone_branch = url.split('#')
                     clone_cmd += ['-b', clone_branch, clone_url]
                 else:
-                    clone_cmd += [clone_url]
+                    clone_cmd += [url]
 
                 clone_cmd += [destdir]
 
