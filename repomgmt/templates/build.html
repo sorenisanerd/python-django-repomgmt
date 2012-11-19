@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+  <tr>
+    <th>Source Package Name</th>
+    <td>{{ build.source_package_name }}</td>
+  </tr>
+  <tr>
+    <th>Source Package version</th>
+    <td>{{ build.version }}</td>
+  </tr>
+  <tr>
+    <th>State</th>
+    <td>{{ build.get_state_display }}</td>
+  </tr>
+  <tr>
+    <th>Architecture</th>
+    <td>{{ build.architecture }}</td>
+  </tr>
+  <tr>
+    <th>Repository</th>
+    <td><a href="{% url 'series_list' repository_name=build.series.repository.name %}">{{ build.series.repository.name }}</a></td>
+  </tr>
+  <tr>
+    <th>Series</th>
+    <td><a href="{% url 'packages_list' repository_name=build.series.repository.name series_name=build.series.name %}">{{ build.series.name }}</a></td>
+  </tr>
+  <tr>
+    <th>Assigned Build Node</th>
+    <td><a href="{% url 'builder_detail' builder_name=build.build_node.name %}">{{ build.build_node.name }}</a></td>
+  </tr>
+</table>
+<p><pre>{{ build.log_tail }}</pre></p>
+{% endblock %}

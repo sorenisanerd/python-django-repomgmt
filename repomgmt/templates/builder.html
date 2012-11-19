@@ -7,12 +7,12 @@
   </tr>
   <tr>
     <th>State</th>
-    <td>{{ node.get_state_display }}</td>
+    <td>{{ build_node.get_state_display }}</td>
   </tr>
   <tr>
     <th>Assigned Build</th>
-    <td>{{ node.buildrecord_set.objects.get }}</td>
+    <td><a href="{% url 'build_detail' build_id=build_node.buildrecord_set.objects.get.id %}">{{ build_node.buildrecord_set.objects.get }}</a></td>
   </tr>
 </table>
-<p><pre>{{ node.buildrecord_set.objects.get.log_tail }}</pre></p>
+<p><pre>{{ build_node.buildrecord_set.objects.get.log_tail }}</pre></p>
 {% endblock %}

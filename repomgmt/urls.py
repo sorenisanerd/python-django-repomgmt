@@ -28,6 +28,8 @@ urlpatterns = patterns('',
     url(r'^builders/$', 'repomgmt.views.builder_list', name='builder_list'),
 
     # Builds
+    url(r'^builds/(?P<build_id>\w+)/$', 'repomgmt.views.build_detail',
+        name='build_detail'),
     url(r'^builds/$', 'repomgmt.views.build_list', name='build_list'),
 
     # Architectures

@@ -206,6 +206,12 @@ def builder_list(request):
                           {'build_nodes': BuildNode.objects.all()})
 
 
+def build_detail(request, build_id):
+    br = BuildRecord.objects.get_or_404(id=builder_id)
+    return render(request, 'build.html',
+                          {'build': br})
+
+
 def build_list(request):
     return render(request, 'builds.html',
                           {'build_records': BuildRecord.objects.all()})
