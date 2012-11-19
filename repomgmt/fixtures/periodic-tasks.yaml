@@ -1,0 +1,39 @@
+- fields: {every: 5, period: seconds}
+  model: djcelery.intervalschedule
+  pk: 1
+- fields:
+    args: '[]'
+    crontab: null
+    date_changed: "2012-11-08T06:00:00Z"
+    description: ''
+    enabled: true
+    exchange: null
+    expires: null
+    interval: 1
+    kwargs: '{}'
+    last_run_at: null
+    name: process-build-queue
+    queue: null
+    routing_key: null
+    task: repomgmt.tasks.process_build_queue
+    total_run_count: 0
+  model: djcelery.periodictask
+  pk: 1
+- fields:
+    args: '[]'
+    crontab: null
+    date_changed: "2012-11-08T06:00:00Z"
+    description: ''
+    enabled: true
+    exchange: null
+    expires: null
+    interval: 1
+    kwargs: '{}'
+    last_run_at: null
+    name: process-incoming
+    queue: null
+    routing_key: null
+    task: repomgmt.tasks.process_incoming
+    total_run_count: 0
+  model: djcelery.periodictask
+  pk: 2
