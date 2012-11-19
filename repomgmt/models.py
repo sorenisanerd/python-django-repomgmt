@@ -456,13 +456,16 @@ class BuildRecord(models.Model):
 
     def log_tail(self, max_lines=20):
         last_lines = []
-        with open(self.logfile(), 'r') as fp:
-            for l in fp:
-                last_lines.append(l)
+        try:
+            with open(self.logfile(), 'r') as fp:
+                for l in fp:
+                    last_lines.append(l)
 
-            last_lines = last_lines[-max_lines:]
+                last_lines = last_lines[-max_lines:]
 
-        return '\n'.join(last_lines)
+            return ''.join(last_lines)
+        except:
+            return ''
 
     @classmethod
     def pick_build(cls, build_node):

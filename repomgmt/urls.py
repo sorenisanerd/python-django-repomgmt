@@ -23,7 +23,7 @@ urlpatterns = patterns('',
 
     # Builders
     url(r'^builders/new/$', 'repomgmt.views.builder_new', name='builder_new'),
-    url(r'^builders/(?P<builder_name>\w+)/$', 'repomgmt.views.builder_detail',
+    url(r'^builders/(?P<builder_name>\S+)/$', 'repomgmt.views.builder_detail',
         name='builder_detail'),
     url(r'^builders/$', 'repomgmt.views.builder_list', name='builder_list'),
 

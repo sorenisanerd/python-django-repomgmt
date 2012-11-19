@@ -11,7 +11,7 @@
   </tr>
   <tr>
     <th>Assigned Build</th>
-    <td><a href="{% url 'build_detail' build_id=build_node.buildrecord_set.objects.get.id %}">{{ build_node.buildrecord_set.objects.get }}</a></td>
+    <td><a href="{% url build_detail build_id=build_node.buildrecord_set.objects.get.id %}">{{ build_node.buildrecord_set.objects.get }}</a></td>
   </tr>
 </table>
 <p><pre>{{ build_node.buildrecord_set.objects.get.log_tail }}</pre></p>
