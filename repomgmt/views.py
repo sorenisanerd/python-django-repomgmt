@@ -19,7 +19,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+
 
 from repomgmt import utils, tasks
 from repomgmt.models import Architecture, BuildNode, BuildRecord
@@ -196,7 +197,7 @@ def puppet_manifest(request, build_record_id):
 
 
 def builder_detail(request, builder_name):
-    bn = BuildNode.objects.get_or_404(name=builder_name)
+    bn = get_object_or_404(BuildNode, name=builder_name)
     return render(request, 'builder.html',
                           {'build_node': bn})
 
@@ -207,7 +208,7 @@ def builder_list(request):
 
 
 def build_detail(request, build_id):
-    br = BuildRecord.objects.get_or_404(id=builder_id)
+    br = get_object_or_404(BuildRecord, id=build_id)
     return render(request, 'build.html',
                           {'build': br})
 
