@@ -1092,7 +1092,7 @@ class PackageSource(models.Model):
                                           subscription.counter)
                 os.symlink(cache_entry.filepath(),
                            '%s/%s_%s.orig.tar.gz' % (tmpdir,
-                                                     cache_entry.project_name,
+                                                     cache_entry.project_name.replace('_', '-'),
                                                      orig_version))
 
                 changelog = utils.run_cmd(['dpkg-parsechangelog'], cwd=pkgdir)
