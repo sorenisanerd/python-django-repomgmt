@@ -9,15 +9,17 @@
     <th>Package version</th>
     <th>Architecture</th>
     <th>State</th>
+    <th>Details</th>
   </tr>
 {% for build in build_records %}
   <tr>
-    <td>{{ build.series.repository.name.capitalize }}</td>
+    <td>{{ build.series.repository.name.capitalize }}</a></td>
     <td>{{ build.series.name.capitalize }}</td>
     <td>{{ build.source_package_name }}</td>
     <td>{{ build.version }}</td>
     <td>{{ build.architecture }}</td>
     <td>{{ build.get_state_display }}</td>
+    <td><a href="{{ url build_detail build_id=build.id }}" class="btn">Details</a></td>
   </tr>
 {% endfor %}
 </table>
