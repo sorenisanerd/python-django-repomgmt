@@ -195,6 +195,12 @@ def puppet_manifest(request, build_record_id):
                           content_type='text/plain')
 
 
+def builder_detail(request, builder_name):
+    bn = BuildNode.objects.get_or_404(name=builder_name)
+    return render(request, 'builder.html',
+                          {'build_node': bn})
+
+
 def builder_list(request):
     return render(request, 'builders.html',
                           {'build_nodes': BuildNode.objects.all()})

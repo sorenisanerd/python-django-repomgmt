@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+  <tr>
+    <th>Name</th>
+    <td>{{ build_node.name }}</td>
+  </tr>
+  <tr>
+    <th>State</th>
+    <td>{{ node.get_state_display }}</td>
+  </tr>
+  <tr>
+    <th>Assigned Build</th>
+    <td>{{ node.buildrecord_set.objects.get }}</td>
+  </tr>
+</table>
+<p><pre>{{ node.buildrecord_set.objects.get.log_tail }}</pre></p>
+{% endblock %}

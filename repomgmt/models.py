@@ -451,6 +451,19 @@ class BuildRecord(models.Model):
             bn.prepare(br)
             bn.build(br)
 
+    def logfile(self):
+        return os.path.join(settings.BUILD_LOG_DIR, '%s.log.txt' % self.pk)
+
+    def log_tail(self, max_lines=20):
+        last_lines = []
+        with open(self.logfile(), 'r') as fp:
+            for l in fp:
+                last_lines.append(l)
+
+            last_lines = last_lines[-max_lines:]
+
+        return '\n'.join(last_lines)
+
     @classmethod
     def pick_build(cls, build_node):
         """Picks the highest priority build"""
@@ -644,8 +657,7 @@ class BuildNode(models.Model):
             if not os.path.exists(settings.BUILD_LOG_DIR):
                 os.makedirs(settings.BUILD_LOG_DIR)
 
-            with open(os.path.join(settings.BUILD_LOG_DIR,
-                                   '%s.log.txt' % build_record.pk), 'a') as fp:
+            with open(build_record.logfile(), 'a') as fp:
                 def write_and_flush(s):
                     fp.write(s)
                     fp.flush()
