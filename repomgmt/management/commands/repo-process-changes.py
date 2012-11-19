@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import logging
 import os
 
 from debian_bundle.deb822 import Changes, Dsc
@@ -23,6 +24,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from repomgmt.models import Architecture, BuildRecord, Repository, Series
+
+logger = logging.getLogger(__name__)
 
 
 def get_repository_name():
@@ -53,15 +56,22 @@ class Command(BaseCommand):
                *args, **options):
 
         if action != 'accepted':
+            logger.debug('Was called with %r != "accepted". Bailing.'
+                         % (action,))
             return
 
+        logger.debug('Parsing changes file %s' % (changes_file,))
         changes = parse_changes_file(changes_file)
 
         if changes['Architecture'] == 'source':
+            logger.debug("Architecture %r == 'source'. Bailing."
+                         % (changes['Architecture'],))
             return
 
         archs_contained = changes['Architecture'].split(' ')
 
+        logger.debug("Architectures contained in this file: %r" %
+                     (archs_contained,))
         build_archs = set()
 
         for arch_name in archs_contained:
@@ -70,6 +80,8 @@ class Command(BaseCommand):
             else:
                 arch = Architecture.objects.get(name=arch_name)
             build_archs.add(arch)
+
+        logger.debug("Build architectures: %r" % (build_archs,))
 
         if len(build_archs) != 1:
             raise Exception("changes file claims Architecture: %r, but that "
@@ -82,13 +94,24 @@ class Command(BaseCommand):
         else:
             repository_name = get_repository_name()
 
+        logger.debug('Fetching repository obj by name: %s'
+                     % (repository_name,))
         repository = Repository.objects.get(name=repository_name)
+
         series_name = codename[:-len('-proposed')]
+        logger.debug('Given codename "%s" yielded series name "%s"'
+                     % (codename, series_name))
         series = Series.objects.get(repository=repository, name=series_name)
+
+        logger.debug('Fetching build record given series %r, architecture %r,'
+                     ' source_package_name %s and version %s'
+                     % (series, architecture, pkg_name, pkg_version))
 
         br = BuildRecord.objects.get(series=series, architecture=architecture,
                                      source_package_name=pkg_name,
                                      version=pkg_version)
-        br.state = BuildRecord.SUCCESFULLY_BUILT
-        br.save()
+        br.update_state(BuildRecord.SUCCESFULLY_BUILT)
+
+        logger.info('Finished processing build record %r. Deleting associated '
+                    'build node %r' % (br, br.build_node))
         br.build_node.delete()
