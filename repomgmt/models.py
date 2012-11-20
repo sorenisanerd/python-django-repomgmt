@@ -444,6 +444,17 @@ class BuildRecord(models.Model):
     def pending_build_count(cls):
         return cls.pending_builds().count()
 
+    def superseded(self):
+        pkginfo = self.series.get_source_packages()
+        for pocket in pkginfo:
+            if pocket.endswith('-queued'):
+                continue
+            if self.source_package_name in pkginfo[pocket]:
+                version = pkginfo[pocket][self.source_package_name]
+                if self.version == version:
+                    return False
+        return True
+
     @classmethod
     def perform_single_build(cls):
         if cls.pending_build_count() > 0:
@@ -522,7 +533,11 @@ class BuildRecord(models.Model):
                 logger.debug('Build summary says fetching source for build %r '
                              'failed. Setting state to NEEDS_BUILDING to '
                              'retry.' % (self,))
-                self.update_state(self.NEEDS_BUILDING)
+                if self.superseded():
+                    self.update_state_from_build_log(
+                                             self.BUILD_FOR_SUPERSEDED_SOURCE)
+                else:
+                    self.update_state(self.NEEDS_BUILDING)
                 return
 
         logger.debug("Setting a default of NEEDS_BUILDING for build summary:"
