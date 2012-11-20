@@ -513,15 +513,15 @@ class BuildRecord(models.Model):
         elif summary['Status'] == 'failed':
             # Some dependencies could not be fulfilled.
             if summary['Fail-Stage'] == 'intall-deps':
-                logger.debug('Build summary says installing deps failed. '
-                             'Setting state accordingly.' % (self,))
+                logger.debug('Build summary says installing deps failed for '
+                             'build %r. Setting state accordingly.' % (self,))
                 self.update_state(self.DEPENDENCY_WAIT)
                 return
             # We failed to fetch the source pkg. Put it back in the queue
             if summary['Fail-Stage'] == 'fetch-src':
-                logger.debug('Build summary says fetching source failed. '
-                             'Setting state to NEEDS_BUILDING to retry.'
-                             % (self,))
+                logger.debug('Build summary says fetching source for build %r '
+                             'failed. Setting state to NEEDS_BUILDING to '
+                             'retry.' % (self,))
                 self.update_state(self.NEEDS_BUILDING)
                 return
 
