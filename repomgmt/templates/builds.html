@@ -20,6 +20,12 @@
     <td>{{ build.architecture }}</td>
     <td>{{ build.get_state_display }}</td>
     <td><a href="{% url build_detail build_id=build.id %}" class="btn">Details</a></td>
+    <td>{% if build.allow_rebuild %}
+      <form method="post" action="{% url build_detail build_id=build.id %}">
+        {% csrf_token %}
+        <input type="submit" name="action" value="Rebuild" />
+      </form>
+    </td>
   </tr>
 {% endfor %}
 </table>

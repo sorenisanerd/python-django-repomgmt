@@ -209,6 +209,13 @@ def builder_list(request):
 
 def build_detail(request, build_id):
     br = get_object_or_404(BuildRecord, id=build_id)
+    if request.method == 'POST':
+        if request.POST['action'] == 'Rebuild':
+            if br.allow_rebuild():
+                br.update_state(br.NEEDS_BUILDING)
+            return HttpResponseRedirect(
+                      reverse('build_detail', kwargs={'build_id': build_id}))
+
     return render(request, 'build.html',
                           {'build': br})
 
