@@ -1036,7 +1036,7 @@ class PackageSource(models.Model):
 
                 cache_entry = TarballCacheEntry(project_name=self.project_name,
                                                 project_version=self.project_version,
-                                                rev_id=self.revision)
+                                                rev_id=self.code_revision)
 
                 tarball = self.build_tarball()
 
