@@ -474,6 +474,9 @@ class BuildRecord(models.Model):
 
     def parse_summary(self):
         lines = self.log_tail(40).split('\n')
+        if not lines:
+            return {'Status': 'Unknown'}
+
         for i in range(len(lines) - 1, 0, -1):
             if 'Summary' in lines[i]:
                 break
