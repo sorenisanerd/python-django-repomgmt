@@ -977,22 +977,26 @@ class TarballCacheEntry(models.Model):
 class PackageSource(models.Model):
     OPENSTACK = 'OpenStack'
     PUPPET = 'Puppet'
+    NATIVE = 'Native'
 
     PACKAGING_FLAVORS = (
         (OPENSTACK, 'OpenStack'),
         (PUPPET, 'Puppet'),
+        (NATIVE, 'Native'),
     )
 
-    class TarballCreator(object):
-        def __init__(self, url, revision):
-            self.url = url
-            self.revision = revision
-            self.tmpdir = tempfile.mkdtemp()
-            self.codedir = os.path.join(self.tmpdir, 'checkout')
+    class SourcePackageBuilder(object):
+        ORIG_VERSION_FORMAT = '%(upstream_version)s-%(counter)s'
+        PKG_VERSION_FORMAT = '%(epoch)s%(orig_version)s-%(repository_name)s1'
 
-            logger.debug('Checking out %s' % (revision,))
-            PackageSource._checkout_code(self.url, self.codedir,
-                                         revision)
+        def __init__(self, source, code_revision, pkg_revision):
+            self.source = source
+            self.code_revision = code_revision
+            self.pkg_revision = pkg_revision
+
+            self.tmpdirPuppet = tempfile.mkdtemp()
+            self.codedir = os.path.join(self.tmpdir, 'code')
+            self.pkgdir = os.path.join(self.tmpdir, 'packaging')
 
         def cleanup(self):
             shutil.rmtree(self.tmpdir)
@@ -1006,28 +1010,122 @@ class PackageSource(models.Model):
         def build_tarball(self):
             raise NotImplementedError()
 
-        def build(self, create_cache_entry=True):
-            self.project_name = self.get_project_name()
-            self.project_version = self.get_project_version()
+        def checkout_code(self):
+            logger.debug('Checking out %s' % (self.code_revision,))
+            PackageSource._checkout_code(self.source.code_url, self.codedir,
+                                         self.code_revision)
 
-            logger.debug('Project name: %s, Version: %s' %
-                         (self.project_name, self.project_version))
+        def prepare_code(self, create_cache_entry=True):
+            """Prepares the code directory
 
-            cache_entry = TarballCacheEntry(project_name=self.project_name,
-                                            project_version=self.project_version,
-                                            rev_id=self.revision)
+            Sideeffects: Must make sure self.project_name and
+                         self.project_version are set"""
+            try:
+                logger.debug('Checking to see if we already have %s cached' % (self.code_revision,))
+                cache_entry = TarballCacheEntry.objects.get(rev_id=self.code_revision)
+                self.project_name = cache_entry.project_name
+                self.project_version = cache_entry.project_version
+            except TarballCacheEntry.DoesNotExist:
+                logger.debug('Did not have %s cached' % (self.code_revision,))
+                logger.info('Building tarball for %s (%s)' % (self, self.code_revision,))
 
-            tarball = self.build_tarball()
+                self.project_name = self.get_project_name()
+                self.project_version = self.get_project_version()
 
-            if settings.TESTING or not create_cache_entry:
-                print 'Got %s' % (tarball,)
+                logger.debug('Project name: %s, Version: %s' % (self.project_name, self.project_version))
+
+                cache_entry = TarballCacheEntry(project_name=self.project_name,
+                                                project_version=self.project_version,
+                                                rev_id=self.revision)
+
+                tarball = self.build_tarball()
+
+                if settings.TESTING or not create_cache_entry:
+                    print 'Got %s' % (tarball,)
+                else:
+                    cache_entry.store_file(tarball)
+                    cache_entry.save()
+
+                self.cleanup()
+            self.cache_entry = cache_entry
+
+        def symlink_orig_tarball(self, subscription, orig_version):
+            os.symlink(self.cache_entry.filepath(),
+                       '%s/%s_%s.orig.tar.gz' % (subscription.tmpdir,
+                                                 self.cache_entry.project_name.replace('_', '-'),
+                                                 orig_version))
+
+        def prepare_packaging(self, subscription):
+            tmpdir = tempfile.mkdtemp(self.tmpdir)
+            pkgdir = os.path.join(tmpdir, 'checkout')
+            subscription.tmpdir = tmpdir
+            subscription.pkgdir = pkgdir
+
+            PackageSource._checkout_code(self.source.packaging_url, pkgdir,
+                                         self.pkg_revision)
+
+            orig_version = self.ORIG_VERSION_FORMAT % {'upstream_version': self.project_version,
+                                                       'counter': subscription.counter}
+
+            self.symlink_orig_tarball(subscription, orig_version)
+
+            changelog = utils.run_cmd(['dpkg-parsechangelog'], cwd=pkgdir)
+
+            for l in changelog.split('\n'):
+                if l.startswith('Version: '):
+                    version = l[len('Version: '):]
+
+            if ':' in version:
+                epoch = '%s:' % (version.split(':')[0],)
             else:
-                cache_entry.store_file(tarball)
-                cache_entry.save()
+                epoch = ''
 
-            return cache_entry
+            return self.PKG_VERSION_FORMAT % {'epoch': epoch,
+                                              'orig_version': orig_version,
+                                              'repository_name': subscription.target_series.repository.name}
 
-    class PuppetTarballCreator(TarballCreator):
+        def changelog_entry(self):
+            return ('Automated PPA build. Code revision: %s. '
+                    'Packaging revision: %s.' % (self.current_code_revision,
+                                                 self.current_pkg_revision))
+
+        def build_packages(self, cache_entry):
+            logger.debug('Building source packages for %r.' % (self,))
+
+            for subscription in self.source.subscription_set.all():
+                logger.debug('Building %s for %s.' %
+                             (self, subscription.target_series))
+
+                pkg_version = self.prepare_packaging(subscription)
+                utils.run_cmd(['dch', '-b',
+                              '--force-distribution',
+                              '-v', pkg_version,
+                              self.changelog_entry(),
+                              '-D', subscription.target_series.name],
+                              cwd=subscription.pkgdir,
+                              override_env={'DEBEMAIL': 'not-valid@example.com',
+                                            'DEBFULLNAME': '%s Autobuilder' % (subscription.target_series.repository.name)})
+
+                utils.run_cmd(['bzr', 'bd', '-S',
+                               '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
+                               ],
+                              cwd=subscription.pkgdir)
+
+                changes_files = glob(os.path.join(subscription.tmpdir, '*.changes'))
+
+                if len(changes_files) != 1:
+                    raise Exception('Unexpected number of changes files: %d' % len(changes_files))
+
+                utils.run_cmd(['dput', '-c', '%s/conf/dput.cf' % subscription.target_series.repository.reprepro_dir,
+                               'autopush', changes_files[0]])
+                subscription.counter += 1
+                subscription.save()
+
+        def build(self):
+            self.prepare_code()
+            self.build_packages()
+
+    class PuppetPackageBuilder(SourcePackageBuilder):
         def get_project_name(self):
             url = self.url.split('#')[0]
             project_name = os.path.split(url)[-1]
@@ -1055,7 +1153,28 @@ class PackageSource(models.Model):
 
             return tarball
 
-    class OpenStackTarballCreator(TarballCreator):
+    class NativePackageBuilder(PuppetPackageBuilder):
+        ORIG_VERSION_FORMAT = '%(upstream_version)s.%(counter)s'
+        PKG_VERSION_FORMAT = '%(epoch)s%(orig_version)s%(repository_name)s1'
+
+        def checkout_code(self):
+            pass
+
+        def build_tarballs(self):
+            pass
+
+        def prepare_code(self):
+            self.project_name = self.get_project_name()
+            self.project_version = self.get_project_version()
+
+        def symlink_orig_tarball(self, subscription, orig_version):
+            pass
+
+        def changelog_entry(self):
+            return ('Automated PPA build. Packaging revision: %s.' %
+                    (self.current_pkg_revision,))
+
+    class OpenStackPackageBuilder(SourcePackageBuilder):
         def get_project_name(self):
             return utils.run_cmd(['python', 'setup.py', '--name'],
                                  cwd=self.codedir).strip().split('\n')[-1]
@@ -1074,8 +1193,9 @@ class PackageSource(models.Model):
 
             return tarballs_in_dist[0]
 
-    TARBALL_CREATOR_CLASS = {OPENSTACK: OpenStackTarballCreator,
-                             PUPPET: PuppetTarballCreator}
+    PACKAGE_BUILDER_CLASS = {OPENSTACK: OpenStackPackageBuilder,
+                             PUPPET: PuppetPackageBuilder,
+                             NATIVE: NativePackageBuilder}
 
     name = models.CharField(max_length=200)
     code_url = models.CharField(max_length=200,
@@ -1103,6 +1223,10 @@ class PackageSource(models.Model):
 
     @classmethod
     def lookup_revision(cls, url):
+        if not url:
+            logger.debug("Empty url. Not going to poll.")
+            return ''
+
         logger.debug("Looking up current revision of %s" % (url,))
         vcstype = cls._guess_vcs_type(url)
 
@@ -1140,83 +1264,16 @@ class PackageSource(models.Model):
             logger.debug('Code for %s was updated.' % (self,))
             something_changed = True
 
-        try:
-            logger.debug('Checking to see if we already have %s cached' %
-                         (current_code_revision,))
-            cache_entry = TarballCacheEntry.objects.get(rev_id=current_code_revision)
-        except TarballCacheEntry.DoesNotExist:
-            logger.debug('Did not have %s cached' %
-                         (current_code_revision,))
-            logger.info('Building tarball for %s (%s)' %
-                        (self, current_code_revision,))
-
-            tarball_creator_class = self.TARBALL_CREATOR_CLASS[self.flavor]
-
-            tarball_creator = tarball_creator_class(self.code_url,
-                                                    current_code_revision)
-            cache_entry = tarball_creator.build()
-            tarball_creator.cleanup()
-
         if self.last_seen_pkg_rev != current_pkg_revision:
             logger.debug('Packaging for %s was updated.' % (self,))
             something_changed = True
 
         if something_changed:
-            logger.debug('%s has changed. Building source packages.' % (self,))
-
-            for subscription in self.subscription_set.all():
-                logger.debug('Building %s for %s.' %
-                             (self, subscription.target_series))
-
-                tmpdir = tempfile.mkdtemp()
-                pkgdir = os.path.join(tmpdir, 'checkout')
-                PackageSource._checkout_code(self.packaging_url, pkgdir,
-                                             current_pkg_revision)
-                orig_version = '%s-%s' % (cache_entry.project_version,
-                                          subscription.counter)
-                os.symlink(cache_entry.filepath(),
-                           '%s/%s_%s.orig.tar.gz' % (tmpdir,
-                                                     cache_entry.project_name.replace('_', '-'),
-                                                     orig_version))
-
-                changelog = utils.run_cmd(['dpkg-parsechangelog'], cwd=pkgdir)
-
-                for l in changelog.split('\n'):
-                    if l.startswith('Version: '):
-                        version = l[len('Version: '):]
-
-                if ':' in version:
-                    epoch = '%s:' % (version.split(':')[0],)
-                else:
-                    epoch = ''
-
-                pkg_version = '%s%s-vendor1' % (epoch, orig_version,)
-
-                utils.run_cmd(['dch', '-b',
-                              '--force-distribution',
-                              '-v', pkg_version,
-                              'Automated PPA build. Code revision: %s. '
-                              'Packaging revision: %s.' % (current_code_revision,
-                                                           current_pkg_revision),
-                              '-D', subscription.target_series.name],
-                              cwd=pkgdir,
-                              override_env={'DEBEMAIL': 'not-valid@example.com',
-                                            'DEBFULLNAME': '%s Autobuilder' % (subscription.target_series.repository.name)})
-
-                utils.run_cmd(['bzr', 'bd', '-S',
-                               '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
-                               ],
-                              cwd=pkgdir)
-
-                changes_files = glob(os.path.join(tmpdir, '*.changes'))
-
-                if len(changes_files) != 1:
-                    raise Exception('Unexpected number of changes files: %d' % len(changes_files))
-
-                utils.run_cmd(['dput', '-c', '%s/conf/dput.cf' % subscription.target_series.repository.reprepro_dir,
-                               'autopush', changes_files[0]])
-                subscription.counter += 1
-                subscription.save()
+            package_builder_class = self.PACKAGE_BUILDER_CLASS[self.flavor]
+            package_builder = package_builder_class(self,
+                                                    current_code_revision,
+                                                    current_pkg_revision)
+            package_builder.build()
 
             self.last_seen_code_rev = current_code_revision
             self.last_seen_pkg_rev = current_pkg_revision
