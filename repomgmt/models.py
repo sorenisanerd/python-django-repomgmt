@@ -52,6 +52,7 @@ from repomgmt.exceptions import CommandFailed
 
 logger = logging.getLogger(__name__)
 
+
 class Repository(models.Model):
     name = models.CharField(max_length=200, primary_key=True)
     signing_key_id = models.CharField(max_length=200)
@@ -467,6 +468,48 @@ class BuildRecord(models.Model):
         except:
             return ''
 
+    def parse_summary(self):
+        lines = self.log_tail(40).split('\n')
+        for i in range(len(lines) - 1, 0, -1):
+            if 'Summary' in lines[i]:
+                break
+
+        # The ith line is the summary heading.
+        # i+1 is the bottem of the heading box.
+        # i+2 is a blank line
+        summary = {}
+        for j in range(i + 3, len(lines)):
+            if not ':' in lines[j]:
+                break
+
+            k, v = lines[j].split(':', 1)
+            summary[k] = v.strip()
+        return summary
+
+    def update_state_from_build_log(self):
+        summary = self.parse_summary()
+        if summary['Status'] == 'successful':
+            # Everything worked beautifully
+            self.update_state(self.SUCCESFULLY_BUILT)
+            return
+        elif summary['Status'] == 'attempted':
+            # The infrastructure performed as expected. The build failed.
+            # There's nothing more for us to do
+            self.update_state(self.FAILED_TO_BUILD)
+            return
+        elif summary['Status'] == 'failed':
+            # Some dependencies could not be fulfilled.
+            if summary['Fail-Stage'] == 'intall-deps':
+                self.update_state(self.DEPENDENCY_WAIT)
+                return
+        elif summary['Status'] == 'failed':
+            # We failed to fetch the source pkg. Put it back in the queue
+            if summary['Fail-Stage'] == 'fetch-src':
+                self.update_state(self.NEEDS_BUILDING)
+                return
+
+        self.update_state(self.NEEDS_BUILDING)
+
     @classmethod
     def pick_build(cls, build_node):
         """Picks the highest priority build"""
@@ -642,7 +685,6 @@ class BuildNode(models.Model):
     def build(self, build_record):
         self.update_state(BuildNode.BUILDING)
         build_record.update_state(BuildRecord.BUILDING)
-        success = False
         try:
             series = build_record.series
             self._run_cmd('mkdir build')
@@ -668,17 +710,11 @@ class BuildNode(models.Model):
                 self._run_cmd(sbuild_cmd, output_callback=write_and_flush)
 
             self._run_cmd('cd build; dput return *.changes')
-            success = True
         except Exception:
             pass
 
-        if success:
-            build_record.update_state(BuildRecord.SUCCESFULLY_BUILT)
-        else:
-            build_record.update_state(BuildRecord.FAILED_TO_BUILD)
-
-        build_record.update_state(BuildRecord.SUCCESFULLY_BUILT)
-        self.update_state(BuildNode.SHUTTING_DOWN)
+        build_record.update_state_from_build_log()
+        self.delete()
 
     @classmethod
     def get_unique_keypair_name(cls, cl):
