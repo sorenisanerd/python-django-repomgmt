@@ -1177,7 +1177,7 @@ class PackageSource(models.Model):
 
         def changelog_entry(self):
             return ('Automated PPA build. Packaging revision: %s.' %
-                    (self.current_pkg_revision,))
+                    (self.pkg_revision,))
 
     class OpenStackPackageBuilder(SourcePackageBuilder):
         def get_project_name(self):
