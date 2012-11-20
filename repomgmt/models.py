@@ -491,27 +491,39 @@ class BuildRecord(models.Model):
         return summary
 
     def update_state_from_build_log(self):
+        logger.debug('Setting build state if %r from build log' % (self,))
+
         summary = self.parse_summary()
         if summary['Status'] == 'successful':
+            logger.debug('Build summary says build %r completed succesfully. '
+                         'Setting state accordingly.' % (self,))
             # Everything worked beautifully
             self.update_state(self.SUCCESFULLY_BUILT)
             return
         elif summary['Status'] == 'attempted':
             # The infrastructure performed as expected. The build failed.
             # There's nothing more for us to do
+            logger.debug('Build summary says build %r failed. '
+                         'Setting state accordingly.' % (self,))
             self.update_state(self.FAILED_TO_BUILD)
             return
         elif summary['Status'] == 'failed':
             # Some dependencies could not be fulfilled.
             if summary['Fail-Stage'] == 'intall-deps':
+                logger.debug('Build summary says installing deps failed. '
+                             'Setting state accordingly.' % (self,))
                 self.update_state(self.DEPENDENCY_WAIT)
                 return
-        elif summary['Status'] == 'failed':
             # We failed to fetch the source pkg. Put it back in the queue
             if summary['Fail-Stage'] == 'fetch-src':
+                logger.debug('Build summary says fetching source failed. '
+                             'Setting state to NEEDS_BUILDING to retry.'
+                             % (self,))
                 self.update_state(self.NEEDS_BUILDING)
                 return
 
+        logger.debug("Setting a default of NEEDS_BUILDING for build summary:"
+                     "%r" % (summary,))
         self.update_state(self.NEEDS_BUILDING)
 
     @classmethod
