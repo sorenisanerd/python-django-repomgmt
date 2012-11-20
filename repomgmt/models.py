@@ -534,8 +534,7 @@ class BuildRecord(models.Model):
                              'failed. Setting state to NEEDS_BUILDING to '
                              'retry.' % (self,))
                 if self.superseded():
-                    self.update_state_from_build_log(
-                                             self.BUILD_FOR_SUPERSEDED_SOURCE)
+                    self.update_state(self.BUILD_FOR_SUPERSEDED_SOURCE)
                 else:
                     self.update_state(self.NEEDS_BUILDING)
                 return
