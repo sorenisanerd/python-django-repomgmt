@@ -994,7 +994,7 @@ class PackageSource(models.Model):
             self.code_revision = code_revision
             self.pkg_revision = pkg_revision
 
-            self.tmpdirPuppet = tempfile.mkdtemp()
+            self.tmpdir = tempfile.mkdtemp()
             self.codedir = os.path.join(self.tmpdir, 'code')
             self.pkgdir = os.path.join(self.tmpdir, 'packaging')
 
