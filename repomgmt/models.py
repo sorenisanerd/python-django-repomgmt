@@ -1127,7 +1127,7 @@ class PackageSource(models.Model):
 
     class PuppetPackageBuilder(SourcePackageBuilder):
         def get_project_name(self):
-            url = self.url.split('#')[0]
+            url = self.code_url.split('#')[0]
             project_name = os.path.split(url)[-1]
 
             if project_name.endswith('.git'):
