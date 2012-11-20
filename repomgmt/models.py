@@ -1029,6 +1029,7 @@ class PackageSource(models.Model):
                 logger.debug('Did not have %s cached' % (self.code_revision,))
                 logger.info('Building tarball for %s (%s)' % (self, self.code_revision,))
 
+                self.checkout_code()
                 self.project_name = self.get_project_name()
                 self.project_version = self.get_project_version()
 
@@ -1046,7 +1047,6 @@ class PackageSource(models.Model):
                     cache_entry.store_file(tarball)
                     cache_entry.save()
 
-                self.cleanup()
             self.cache_entry = cache_entry
 
         def symlink_orig_tarball(self, subscription, orig_version):
@@ -1056,7 +1056,7 @@ class PackageSource(models.Model):
                                                  orig_version))
 
         def prepare_packaging(self, subscription):
-            tmpdir = tempfile.mkdtemp(self.tmpdir)
+            tmpdir = tempfile.mkdtemp(dir=self.tmpdir)
             pkgdir = os.path.join(tmpdir, 'checkout')
             subscription.tmpdir = tmpdir
             subscription.pkgdir = pkgdir
@@ -1086,10 +1086,10 @@ class PackageSource(models.Model):
 
         def changelog_entry(self):
             return ('Automated PPA build. Code revision: %s. '
-                    'Packaging revision: %s.' % (self.current_code_revision,
-                                                 self.current_pkg_revision))
+                    'Packaging revision: %s.' % (self.code_revision,
+                                                 self.pkg_revision))
 
-        def build_packages(self, cache_entry):
+        def build_packages(self):
             logger.debug('Building source packages for %r.' % (self,))
 
             for subscription in self.source.subscription_set.all():
@@ -1124,6 +1124,7 @@ class PackageSource(models.Model):
         def build(self):
             self.prepare_code()
             self.build_packages()
+            self.cleanup()
 
     class PuppetPackageBuilder(SourcePackageBuilder):
         def get_project_name(self):
