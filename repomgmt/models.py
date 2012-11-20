@@ -747,7 +747,11 @@ class BuildNode(models.Model):
             pass
 
         build_record.update_state_from_build_log()
-        self.delete()
+
+        if build_record.state != build_record.SUCCESFULLY_BUILT:
+            # If the build succeeded, defer deleting the build node record
+            # until the upload has been processed.
+            self.delete()
 
     @classmethod
     def get_unique_keypair_name(cls, cl):
