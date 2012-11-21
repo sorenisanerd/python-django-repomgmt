@@ -18,7 +18,8 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
-from repomgmt.models import BuildRecord, ChrootTarball, Repository
+from repomgmt.models import BuildRecord, ChrootTarball, PackageSource
+from repomgmt.models import Repository
 
 logger = get_task_logger(__name__)
 
@@ -52,3 +53,10 @@ def process_build_queue():
 def process_incoming():
     for repo in Repository.objects.all():
         repo.process_incoming()
+
+
+@task()
+def poll_upstreams():
+    for repo in Repository.objects.all():
+        for pkg_src in PackageSource.objects.all():
+            pkg_src.poll()

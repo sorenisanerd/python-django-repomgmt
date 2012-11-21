@@ -1,6 +1,9 @@
 - fields: {every: 5, period: seconds}
   model: djcelery.intervalschedule
   pk: 1
+- fields: {every: 5, period: minutes}
+  model: djcelery.intervalschedule
+  pk: 2
 - fields:
     args: '[]'
     crontab: null
@@ -37,3 +40,21 @@
     total_run_count: 0
   model: djcelery.periodictask
   pk: 2
+- fields:
+    args: '[]'
+    crontab: null
+    date_changed: "2012-11-20T06:00:00Z"
+    description: ''
+    enabled: true
+    exchange: null
+    expires: null
+    interval: 2
+    kwargs: '{}'
+    last_run_at: null
+    name: poll-upstreams
+    queue: null
+    routing_key: null
+    task: repomgmt.tasks.poll_upstreams
+    total_run_count: 0
+  model: djcelery.periodictask
+  pk: 3
