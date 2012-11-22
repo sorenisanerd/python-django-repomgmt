@@ -1218,6 +1218,7 @@ class PackageSource(models.Model):
     last_seen_pkg_rev = models.CharField(max_length=200)
     flavor = models.CharField(max_length=200, choices=PACKAGING_FLAVORS,
                               default=OPENSTACK)
+    last_changed = models.DateTimeField(null=True, blank=True, db_index=True)
 
     def __unicode__(self):
         return self.name
@@ -1286,6 +1287,7 @@ class PackageSource(models.Model):
 
             self.last_seen_code_rev = current_code_revision
             self.last_seen_pkg_rev = current_pkg_revision
+            self.last_changed = timezone.now()
             self.save()
         return something_changed
 

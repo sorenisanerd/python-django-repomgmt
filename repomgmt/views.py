@@ -265,4 +265,7 @@ def builder_new(request):
 
 def front_page(request):
     latest_builds = BuildRecord.objects.order_by('-created')[:10]
-    return render(request, 'front.html', {'latest_builds': latest_builds})
+    latest_code_updates = PackageSource.objects.order_by('-last_changed')[:10]
+    return render(request, 'front.html',
+                  {'latest_builds': latest_builds,
+                   'latest_code_updates': latest_code_updates})
