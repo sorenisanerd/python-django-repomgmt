@@ -1292,6 +1292,23 @@ class PackageSource(models.Model):
         return something_changed
 
     @classmethod
+    def vcs_browser_url(self, url, revision):
+        if url.startswith('http://bazaar.launchpad.net'):
+            return '%s/revision/%s' % (url, revision)
+        elif (url.startswith('http://github.com/')
+           or url.startswith('https//github.com')):
+            if '#' in url:
+                url, branch = url.split('#')
+            return '%s/commit/%s' % (url, revision)
+        return '#'
+
+    def vcs_code_url(self):
+        return self.vcs_browser_url(self.code_url, self.last_seen_code_rev)
+
+    def vcs_packaging_url(self):
+        return self.vcs_browser_url(self.packaging_url, self.last_seen_pkg_rev)
+
+    @classmethod
     def _checkout_code(cls, url, destdir, revision):
         print ("Checking out revision %s of %s" % (revision, url))
         vcstype = cls._guess_vcs_type(url)

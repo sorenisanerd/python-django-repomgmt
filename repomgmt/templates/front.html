@@ -64,10 +64,10 @@
               {{ code_update.name }}
           </td>
           <td>
-              {{ code_update.last_seen_code_rev }}
+            <a href="{{ code.vcs_code_url }}">{{ code_update.last_seen_code_rev }}</a>
           </td>
           <td>
-              {{ code_update.last_seen_pkg_rev }}
+            <a href="{{ code.vcs_packaging_url }}">{{ code_update.last_seen_pkg_rev }}</a>
           </td>
         </tr>
         {% endfor %}
