@@ -54,6 +54,10 @@ class Command(BaseCommand):
         if action != 'add' and action != 'replace':
             return
 
+        if os.environ.get('REPREPRO_CAUSING_COMMAND') == 'copysrc':
+            # Copysrc also copies the binaries, so we don't want to build them again
+            return
+
         if 'repository' in options:
             repository_name = options['repository']
         else:
