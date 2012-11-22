@@ -222,7 +222,7 @@ def build_detail(request, build_id):
 
 def build_list(request):
     return render(request, 'builds.html',
-                          {'build_records': BuildRecord.objects.all()})
+                          {'build_records': BuildRecord.objects.order_by('-created')})
 
 
 def tarball_list(request):

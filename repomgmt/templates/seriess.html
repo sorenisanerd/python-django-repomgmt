@@ -1,7 +1,25 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<p>These are the various series maintained in the {{ repository.name }} repository.<a href="{% url new_series_form repository_name=repository.name %}" class="btn pull-right">Create new</a></p>
+<p>These are the various series maintained in the {{ repository.name }} repository.</p>
+<p>If you want to upload packages here, you need to have a user created in the repomgmt system and a GPG key associated with your account.
+
+Once that's done, you can add this snippet to your <code>~/.dput.cf</code> (creating it first if it doesn't already exist):
+<pre>
+[repo]
+method   = ftp
+fqdn     = {{ settings.FTP_IP }}
+login    = anonymous
+incoming = {{ settings.FTP_BASE_URL }}/%(repo)s/
+</pre>
+
+Once that's done, you can upload to this repository like so:
+<pre>
+dput repo:{{ repository.name }} foo_1.2-3_source.dsc
+</pre>
+The upload will land in the series specified in the <code>.changes</code> file (which in turn is based on what you put in your <code>debian/changelog</code>).
+</p>
+<p><a href="{% url new_series_form repository_name=repository.name %}" class="btn pull-right">Create new</a></p>
 <table class="table table-striped">
   <tr>
     <th>Series</th>

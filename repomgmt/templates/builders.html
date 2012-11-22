@@ -1,6 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-        <p>This is an overview over current build nodes. Build nodes are dynamically created and destroyed based on current load, so sometimes you will see many builders here, sometimes none at all.</p>
+<p>This is an overview over current build nodes. Build nodes are dynamically created and destroyed based on current load, so sometimes you will see many builders here, sometimes none at all.</p>
+<p>Build nodes can be in one of these states:
+  <dl>
+    <dt>Newly created</dt>
+    <dd>Node instance has just been provisioned and we're still waiting for it to be accessible</dd>
+    <dt>Booting (not yet available)</dt>
+    <dd>Node has been assigned its build, but is not yet accessible.</dd>
+    <dt>Preparing (Installing build infrastructure)</dt>
+    <dd>Node is accessible. The images we use are base Ubuntu images, so before we can build packages, we need to install things like sbuild, download the build chroot tarball, etc.</dd>
+    <dt>Ready to build</dt>
+    <dd>Node is ready to start building.</dd>
+    <dt>Building</dt>
+    <dd>Node is currently building.</dd>
+    <dt>Shutting down</dt>
+    <dd>Node is done building and is waiting to scheduled for termination. If the builds was succesful, it will be terminated once the upload is processed. If the build failed for some reason, the node is terminated immediately.</dd>
+  </dl>
+</p>
 <table class="table table-striped">
   <tr>
     <th>Name</th>

@@ -1,6 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-  <p>This is an overview over current builds.</p>
+<p>This is an overview over builds.</p>
+<p>Build can be in one of these states:
+  <dl>
+    <dt>Needs building</dt>
+    <dd>All build records start out in this state. A source package has just been uploaded and this build is scheduled to be built as soon as possible.</dd>
+    <dt>Succesfully built</dt>
+    <dd>The built has completed succesfully.</dd>
+    <dt>Building</dt>
+    <dd>The build is currently in process.</dd>
+    <dt>Chroot Problem</dt>
+    <dd>There was a problem with the infrastructure preventing the build from proceeding.</dd>
+    <dt>Build for superseded source</dt>
+    <dd>Another build has superseded this one. This happens if a new version of a particular package is uploaded before this one gets built.</dd>
+    <dt>Failed to bulid</dt>
+    <dd>The build was succesfully attempted, but failed. This indicates a problem with the package, not with the infrastructure.</dd>
+    <dt>Dependency wait</dt>
+    <dd>The build stated a dependency on another package which could not be found. Eventually, we will automatically retry builds in this state when the missing package is added.</dd>
+    <dt>Failed to upload</dt>
+    <dd>The build succeeded, but could not be uploaded from the build node to the master.</dd>
+  </dl>
+</p>
 <table class="table table-striped">
   <tr>
     <th>Repository</th>
