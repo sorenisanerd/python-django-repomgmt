@@ -1,3 +1,9 @@
+- fields:
+    name: folsom
+    repository: cisco
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 1
 - fields: {signing_key_id: "12345678"}
   model: repomgmt.repository
   pk: cisco

@@ -20,7 +20,9 @@ import textwrap
 
 from django.test import TestCase, client
 from django.test.utils import override_settings
-from repomgmt.models import Cloud, BuildNode, BuildRecord, KeyPair, Repository, Series
+from repomgmt.models import Cloud, BuildNode, BuildRecord, KeyPair, Repository
+from repomgmt.models import Series
+
 
 class CloudTests(TestCase):
     test_user = 'testuser1'
@@ -171,11 +173,11 @@ class BuildSchedulerTests(TestCase):
 class SeriesTests(TestCase):
     fixtures = ['test_series.yaml']
     reprepro_list = '''\
-                       folsom-proposed|main|i386: cinder-api 2012.2.1~+cisco-folsom1260-53
-                       folsom-proposed|main|i386: cinder-common 2012.2.1~+cisco-folsom1260-53
-                       folsom-proposed|main|amd64: cinder-api 2012.2.1~+cisco-folsom1260-53
-                       folsom-proposed|main|amd64: cinder-common 2012.2.1~+cisco-folsom1260-53
-                       folsom-proposed|main|source: cinder 2012.2.1~+cisco-folsom1260-53'''
+        folsom-proposed|main|i386: cinder-api 2012.2.1~+cisco-folsom1260-53
+        folsom-proposed|main|i386: cinder-common 2012.2.1~+cisco-folsom1260-53
+        folsom-proposed|main|amd64: cinder-api 2012.2.1~+cisco-folsom1260-53
+        folsom-proposed|main|amd64: cinder-common 2012.2.1~+cisco-folsom1260-53
+        folsom-proposed|main|source: cinder 2012.2.1~+cisco-folsom1260-53'''
 
     @override_settings(BASE_REPO_DIR='/base/repo/dir')
     def test_get_packages(self):
@@ -197,6 +199,10 @@ class SeriesTests(TestCase):
             self.assertEquals(len(pkg_list), 3)
 
 class RepositoryTests(TestCase):
+    def test_repository_unicode(self):
+        repo = Repository(name='foo')
+        self.assertEquals('%s' % (repo,), 'foo')
+
     def test_create_new_repository(self):
         repo_set = set(Repository.objects.all())
 
