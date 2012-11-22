@@ -1296,7 +1296,7 @@ class PackageSource(models.Model):
         if url.startswith('http://bazaar.launchpad.net'):
             return '%s/revision/%s' % (url, revision)
         elif (url.startswith('http://github.com/')
-           or url.startswith('https//github.com')):
+           or url.startswith('https://github.com')):
             if '#' in url:
                 url, branch = url.split('#')
             return '%s/commit/%s' % (url, revision)
