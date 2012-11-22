@@ -64,6 +64,9 @@
               {{ code_update.name }}
           </td>
           <td>
+              {{ code_update.last_changed|naturaltime }}
+          </td>
+          <td>
             <a href="{{ code.vcs_code_url }}">{{ code_update.last_seen_code_rev }}</a>
           </td>
           <td>
