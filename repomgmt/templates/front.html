@@ -26,6 +26,7 @@
         <tr>
           <th>Name</th>
           <th>Version</th>
+          <th>Finished</th>
           <th>Architecture</th>
           <th>Repository</th>
         </tr>
@@ -36,6 +37,9 @@
           </td>
           <td>
             <a href="{% url build_detail build_id=build.id %}">{{ build.version }}</a>
+          </td>
+          <td>
+            {{ build.finished|naturaltime }} ({{ build.finished|date:"Y-m-d H:i:s" }})
           </td>
           <td>
             <a href="{% url build_detail build_id=build.id %}">{{ build.architecture }}</a>
@@ -64,7 +68,7 @@
               {{ code_update.name }}
           </td>
           <td>
-              {{ code_update.last_changed|naturaltime }}
+              {{ code_update.last_changed|naturaltime }} ({{ code_update.last_changed|date:"Y-m-d H:i:s" }})
           </td>
           <td>
             <a href="{{ code_update.vcs_code_url }}">{{ code_update.last_seen_code_rev }}</a>
