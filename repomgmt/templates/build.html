@@ -29,6 +29,10 @@
     <th>Assigned Build Node</th>
     <td>{% if build.build_node.name %}<a href="{% url builder_detail builder_name=build.build_node.name %}">{{ build.build_node.name }}</a>{% else %}None{% endif %}</td>
   </tr>
+  <tr>
+    <th>Build log</th>
+    <td><a href="{{ build.build_log_url }}">{{ build.build_log_url }}</a></td>
+  </tr>
 </table>
 <p><pre>{{ build.log_tail }}</pre></p>
 {% endblock %}

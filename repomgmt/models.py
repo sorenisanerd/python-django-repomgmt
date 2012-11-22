@@ -469,6 +469,9 @@ class BuildRecord(models.Model):
                                BuildRecord.FAILED_TO_BUILD]
                 and not self.superseded())
 
+    def build_log_url(self):
+        return '%s/%s' % (settings.BASE_BUILD_LOG_URL, '%s.log.txt' % self.pk)
+
     def logfile(self):
         return os.path.join(settings.BUILD_LOG_DIR, '%s.log.txt' % self.pk)
 
