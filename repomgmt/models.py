@@ -464,8 +464,9 @@ class BuildRecord(models.Model):
             bn.build(br)
 
     def allow_rebuild(self):
-        return self.state in [BuildRecord.DEPENDENCY_WAIT,
-                              BuildRecord.FAILED_TO_BUILD]
+        return (self.state in [BuildRecord.DEPENDENCY_WAIT,
+                               BuildRecord.FAILED_TO_BUILD]
+                and not self.superseded())
 
     def logfile(self):
         return os.path.join(settings.BUILD_LOG_DIR, '%s.log.txt' % self.pk)
