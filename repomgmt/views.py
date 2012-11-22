@@ -264,4 +264,5 @@ def builder_new(request):
 
 
 def front_page(request):
-    return render(request, 'front.html')
+    latest_builds = BuildRecord.objects.order_by('-created')[:10]
+    return render(request, 'front.html', {'latest_builds': latest_builds})
