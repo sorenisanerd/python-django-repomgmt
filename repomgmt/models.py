@@ -418,6 +418,7 @@ class BuildRecord(models.Model):
     series = models.ForeignKey(Series)
     build_node = models.ForeignKey('BuildNode', null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    finished = models.DateTimeField(db_index=True, null=True, blank=True)
 
     def get_tarball(self):
         return self.series.base_ubuntu_series.chroottarball_set.get(architecture=self.architecture)
@@ -748,6 +749,8 @@ class BuildNode(models.Model):
             pass
 
         build_record.update_state_from_build_log()
+        build_record.finished = timezone.now()
+        build_record.save()
 
         if build_record.state != build_record.SUCCESFULLY_BUILT:
             # If the build succeeded, defer deleting the build node record
