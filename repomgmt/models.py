@@ -1230,7 +1230,9 @@ class PackageSource(models.Model):
     def _guess_vcs_type(cls, url):
         if 'launchpad' in url:
             return 'bzr'
-        if 'github' in url:
+        elif 'github' in url:
+            return 'git'
+        elif url.startswith('git:'):
             return 'git'
         raise Exception('No idea what to do with %r' % url)
 
