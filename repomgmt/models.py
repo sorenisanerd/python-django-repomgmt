@@ -1302,6 +1302,8 @@ class PackageSource(models.Model):
            or url.startswith('https://github.com')):
             if '#' in url:
                 url, branch = url.split('#')
+            if url.endswith('.git'):
+                url = url[:-4]
             return '%s/commit/%s' % (url, revision)
         return '#'
 
