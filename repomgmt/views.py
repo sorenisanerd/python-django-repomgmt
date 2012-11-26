@@ -133,6 +133,11 @@ def repository_list(request):
                           {'repositories': Repository.objects.all()})
 
 
+def repository_public_key(request, repository_name):
+    repository = Repository.objects.get(name=repository_name)
+    return HttpResponse(repository.signing_key.public_key, 'text/plain')
+
+
 def series_list(request, repository_name):
     repository = Repository.objects.get(name=repository_name)
     if request.method == 'POST':
