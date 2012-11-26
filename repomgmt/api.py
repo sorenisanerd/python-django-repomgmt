@@ -19,11 +19,10 @@ from django.contrib.auth.models import User
 from django.core.serializers import json
 from django.db import models
 from django.utils import simplejson
-from tastypie import fields
+from tastypie import fields, http
 from tastypie.api import Api
 from tastypie.authentication import BasicAuthentication, ApiKeyAuthentication
 from tastypie.authorization import DjangoAuthorization
-from tastypie.http import HttpUnauthorized
 from tastypie.models import create_api_key
 from tastypie.resources import ModelResource
 from repomgmt.models import Architecture, Repository, Series
@@ -64,7 +63,7 @@ class MultiAuthentication(object):
             check = backend.is_authenticated(request, **kwargs)
 
             if check:
-                if isinstance(check, HttpUnauthorized):
+                if isinstance(check, http.HttpUnauthorized):
                     unauthorized = unauthorized or check
                 else:
                     request._authentication_backend = backend
@@ -106,6 +105,8 @@ class RepositoryResource(ModelResource):
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
 
+class HttpAccepted(http.HttpResponse):
+    status_code = 202
 
 class SeriesResource(ModelResource):
     repository = fields.ForeignKey(RepositoryResource, 'repository')
@@ -117,6 +118,15 @@ class SeriesResource(ModelResource):
                                              ApiKeyAuthentication())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
+
+    def post_detail(self, request, **kwargs):
+        deserialized = self.deserialize(request, request.raw_post_data, format=request.META.get('CONTENT_TYPE', 'application/json'))
+        deserialized = self.alter_deserialized_detail_data(request, deserialized)
+        obj = self.obj_get(request)
+        if deserialized.get('action', None) == 'promote':
+            obj.promote()
+            return HttpAccepted()
+        return http.HttpBadRequest()
 
     def dehydrate_state(self, bundle):
         return bundle.obj.get_state_display()
