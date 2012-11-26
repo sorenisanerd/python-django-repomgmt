@@ -17,8 +17,19 @@ Once that's done, you can upload to this repository like so:
 <pre>
 dput repo:{{ repository.name }} foo_1.2-3_source.dsc
 </pre>
-The upload will land in the series specified in the <code>.changes</code> file (which in turn is based on what you put in your <code>debian/changelog</code>).
+The upload will land in the series specified in the <code>.changes</code> file (which in turn is based on what you put in your <code>debian/changelog</code>). Packages with "<code>Distribution: foo</code>" will land in <code>foo-proposed</code>. Uploads are never accepted directly into <code>foo</code>.
 </p>
+<p>A release series can be in one of the following states:
+<dl>
+  <dt>Active development</dt>
+  <dd>Uploads are accepted into the <code>-proposed</code> pocket, and builds are performed, etc. This is the "normal" state, so to speak.</dd>
+  <dt>Maintenance mode</dt>
+  <dd>Treated exactly the same as "Active development". The purpose is exclusively to signal to humans that this release series isn't the current focus of development anymore.</dd>
+  <dt>Frozen for testing</dt>
+  <dd>Uploads are no longer accepted into <code>foo-proposed</code>, but rather land in <code>foo-queued</code>. No builds are performed. Once a release series transitions from this state to one of the two active states, <code>foo-queued</code> is flushed into <code>foo-proposed</code> and treated as though they had just been uploaded (so build records are created, etc.).</dd>
+  <dt>No longer maintained</dt>
+  <dd>Uploads are no longer accepted.</dd>
+</dl></p>
 <p><a href="{% url new_series_form repository_name=repository.name %}" class="btn pull-right">Create new</a></p>
 <table class="table table-striped">
   <tr>
@@ -35,4 +46,3 @@ The upload will land in the series specified in the <code>.changes</code> file (
 {% endfor %}
 </table>
 {% endblock %}
-
