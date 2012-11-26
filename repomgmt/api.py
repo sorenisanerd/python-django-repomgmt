@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+from django.conf.urls import url
 from django.contrib.auth.models import User
 from django.core.serializers import json
 from django.db import models
@@ -23,6 +24,7 @@ from tastypie import fields, http
 from tastypie.api import Api
 from tastypie.authentication import BasicAuthentication, ApiKeyAuthentication
 from tastypie.authorization import DjangoAuthorization
+from tastypie.bundle import Bundle
 from tastypie.models import create_api_key
 from tastypie.resources import ModelResource
 from repomgmt.models import Architecture, Repository, Series
@@ -105,8 +107,10 @@ class RepositoryResource(ModelResource):
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
 
+
 class HttpAccepted(http.HttpResponse):
     status_code = 202
+
 
 class SeriesResource(ModelResource):
     repository = fields.ForeignKey(RepositoryResource, 'repository')
@@ -127,6 +131,29 @@ class SeriesResource(ModelResource):
             obj.promote()
             return HttpAccepted()
         return http.HttpBadRequest()
+
+    def get_resource_uri(self, bundle_or_obj):
+        if isinstance(bundle_or_obj, Bundle):
+            obj = bundle_or_obj.obj
+        else:
+            obj = bundle_or_obj
+
+        kwargs = {
+            'resource_name': self._meta.resource_name,
+            'repository__name': obj.repository.name,
+            'name': obj.name
+        }
+
+        if self._meta.api_name is not None:
+            kwargs['api_name'] = self._meta.api_name
+
+        return self._build_reverse_url("api_dispatch_detail",
+                                       kwargs=kwargs)
+
+    def override_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<repository__name>[\w\d_.-]+)/(?P<name>[\w\d_.-]+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            ]
 
     def dehydrate_state(self, bundle):
         return bundle.obj.get_state_display()
