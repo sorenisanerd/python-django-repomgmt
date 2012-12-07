@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+from django import forms
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
@@ -43,7 +44,7 @@ class NewRepositoryForm(ModelForm):
 class NewSeriesForm(ModelForm):
     class Meta:
         model = Series
-        fields = ("name", "numerical_version", "base_ubuntu_series", "state")
+        fields = ("name", "numerical_version", "base_ubuntu_series", "state", "update_from")
 
 
 class NewPkgSourceForm(ModelForm):

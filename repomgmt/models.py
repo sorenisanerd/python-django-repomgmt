@@ -113,7 +113,7 @@ class Repository(models.Model):
 
         for f in ['distributions', 'incoming', 'options', 'pulls',
                   'uploaders', 'create-build-records.sh', 'dput.cf',
-                  'process-changes.sh']:
+                  'process-changes.sh', 'updates']:
             s = render_to_string('reprepro/%s.tmpl' % (f,),
                                  {'repository': self,
                                   'architectures': Architecture.objects.all(),
@@ -193,6 +193,7 @@ class Series(models.Model):
     numerical_version = models.CharField(max_length=200)
     state = models.SmallIntegerField(default=ACTIVE,
                                      choices=SERIES_STATES)
+    update_from = models.ForeignKey('Series', null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "series"
@@ -217,12 +218,28 @@ class Series(models.Model):
     def save(self, *args, **kwargs):
         self.repository.write_configuration()
         if self.pk:
+            newly_created = False
             old = Series.objects.get(pk=self.pk)
             if old.state != self.state:
                 if (old.state == Series.FROZEN and
                          self.state == Series.ACTIVE):
                     self.flush_queue()
-        return super(Series, self).save(*args, **kwargs)
+        else:
+            newly_created = True
+
+        series = super(Series, self).save(*args, **kwargs)
+
+        if newly_created:
+            if series.update_from:
+                for subscription in series.update_from.subscription_set.all():
+                    # This creates a new subscription
+                    subscription.pk = None
+                    subscription.target_series = series
+                    subscription.save()
+
+            series.update()
+
+        return series
 
     def freeze(self):
         self.state = Series.FROZEN
@@ -258,6 +275,11 @@ class Series(models.Model):
                 pkgs[key][pkg_name] = pkg_version
 
         return pkgs
+
+    def update(self):
+        self.repository.write_configuration()
+        if self.update_from:
+            self.repository._reprepro('update', '%s-proposed' % (self.name,))
 
     def promote(self):
         self.repository._reprepro('pull', self.name)
