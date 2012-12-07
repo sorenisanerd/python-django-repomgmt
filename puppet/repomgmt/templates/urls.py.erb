@@ -2,5 +2,6 @@ from django.conf.urls import patterns, include, url
 import repomgmt.urls
 
 urlpatterns = patterns('',
+    url(r'^accounts/', include('registration.backends.simple.urls')),
     url(r'', include('repomgmt.urls'))
 )
