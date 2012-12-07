@@ -38,7 +38,7 @@ class Command(BaseCommand):
                                                Subkey-Length: 4096
                                                Name-Real: %s repository
                                                Expire-Date: 0
-                                               %%commit'''))
+                                               %%commit''' % repo_arg))
         for l in output.split('\n'):
             if l.startswith('gpg: key '):
                 key_id = l.split(' ')[2]
