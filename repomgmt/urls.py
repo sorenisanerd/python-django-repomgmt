@@ -32,11 +32,20 @@ urlpatterns = patterns('',
         name='build_detail'),
     url(r'^builds/$', 'repomgmt.views.build_list', name='build_list'),
 
-    # Architectures
+    # Package Sources
     url(r'^packagesources/$', 'repomgmt.views.pkg_sources_list',
                               name='pkg_sources_list'),
     url(r'^packagesources/new/$', 'repomgmt.views.new_pkg_source_form',
                               name='new_pkg_source_form'),
+
+    # Subscriptions
+    url(r'^subscriptions/(?P<subscription_id>\d+)/$',
+        'repomgmt.views.subscription_detail', name='subscription_detail'),
+
+    url(r'^subscriptions/(?P<subscription_id>\d+)/edit/$',
+        'repomgmt.views.subscription_edit', name='subscription_edit'),
+
+
     # Architectures
     url(r'^architectures/$', 'repomgmt.views.architecture_list',
                               name='architecture_list'),

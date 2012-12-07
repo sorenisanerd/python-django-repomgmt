@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<h2>Subscription information</h2>
+<dl>
+  <dt>Target series</dt>
+  <dd>{{ subscription.target_series }}</dd>
+  <dt>Source</dt>
+  <dd>{{ subscription.source.name }}</dd>
+  <dt>Counter</dt>
+  <dd>{{ subscription.counter }}</dd>
+</dl>
+
+{% endblock %}

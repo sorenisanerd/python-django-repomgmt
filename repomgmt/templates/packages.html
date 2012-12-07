@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<h1>{{ series.repository.name.capitalize }} repository, {{ series.name.capitalize }} series</h1>
-<h2>Packages</h2>
-<form action="{% url promote_series %}" method="post">
-  {% csrf_token %}
-  <input type="hidden" name="repository" value="{{ series.repository.name }}" />
-  <input type="hidden" name="series" value="{{ series.name }}" />
-  <input class="btn pull-right" type="submit" value="Promote from proposed to stable" />
-</form></p>
+<h1>{{ series.name.capitalize }}</h1>
+<hr />
+<h2>Series information</h2>
+<dl>
+  <dt>Repository</dt>
+  <dd>{{ series.repository.name.capitalize }}</dd>
+  <dt>Series</dt>
+  <dd>{{ series.name.capitalize }}</dd>
+</dl>
+<hr />
+<h3>Packages</h3>
 <table class="table table-striped table-condensed">
   <tr>
     <th>Package name</th>
@@ -25,14 +28,14 @@
   </tr>
 {% endfor %}
 </table>
-<h2>Package source subscriptions</h2>
+<h3>Package source subscriptions</h2>
 <table class="table table-striped table-condensed">
   <tr>
     <th>Package source name</th>
   </tr>
 {% for subscription in subscriptions %}
   <tr>
-    <td>{{ subscription.source.name }}</td>
+    <td>{{ subscription.source.name }} <a href="{% url subscription_edit subscription.id %}"><i class="icon-pencil"></i></a></td>
   </tr>
 {% endfor %}
 </table>

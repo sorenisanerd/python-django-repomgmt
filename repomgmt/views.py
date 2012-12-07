@@ -27,13 +27,19 @@ from django.shortcuts import render, get_object_or_404
 from repomgmt import utils, tasks
 from repomgmt.models import Architecture, BuildNode, BuildRecord
 from repomgmt.models import ChrootTarball, Repository, Series
-from repomgmt.models import UbuntuSeries, PackageSource
+from repomgmt.models import UbuntuSeries, PackageSource, Subscription
 
 
 class NewArchitectureForm(ModelForm):
     class Meta:
         model = Architecture
         fields = ("name", "builds_arch_all")
+
+
+class SubscriptionForm(ModelForm):
+    class Meta:
+        model = Subscription
+        fields = ("target_series", "source")
 
 
 class NewRepositoryForm(ModelForm):
@@ -278,6 +284,25 @@ def user_details(request, username):
     user = get_object_or_404(User, username=username)
     return render(request, 'user.html',
                           {'userobj': user})
+
+
+def subscription_edit(request, subscription_id):
+    subscription = get_object_or_404(Subscription, id=subscription_id)
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST, instance=subscription)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('subscription_detail', args=[subscription.id]))
+    else:
+        form = SubscriptionForm(instance=subscription)
+    return render(request, 'subscription_edit.html', {'form': form,
+                                                      'subscription': subscription})
+
+
+def subscription_detail(request, subscription_id):
+    subscription = get_object_or_404(Subscription, id=subscription_id)
+    return render(request, 'subscription.html',
+                           {'subscription': subscription})
 
 
 def front_page(request):
