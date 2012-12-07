@@ -22,7 +22,7 @@ Description: {{ repository.name }} {{ series.name }} (Add-on for Ubuntu {{ serie
 SignWith: {{ repository.signing_key_id }}
 Uploaders: uploaders
 Tracking: minimal includelogs
-{% if series.update_from %}Update: {{ series.update_from.repository.name }}-{{ series.update_from.name }}{% endif %}
+{% if series.update_from %}Update: {{ series.update_from.repository.name }}-{{ series.update_from.name }}-{{ series.name }}{% endif %}
 Pull: {{ series.name }}-flush
 Log:
  --type=dsc create-build-records.sh
