@@ -1,0 +1,7 @@
+You (or someone impersonating you) has attempted to create an account on
+OpenStack@Cisco.
+
+Click this link to activate your account:
+
+Best regards,
+Staff.

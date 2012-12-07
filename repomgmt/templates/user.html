@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<dl>
+  <dt>Username</dt>
+  <dd>{{ userobj.username }}</dd>
+  <dt>E-mail</dt>
+  <dd>{{ userobj.email }}</dd>
+  <dt>Related repositories</dt>
+  <dd>
+    <ul>{% for repository in userobj.repository_set.all %}
+      <li><a href="{% url series_list repository_name=repository.name %}">{{ repository.name }}</a></li>{% endfor %}
+    </ul>
+  </dd>
+  {% if userobj == user %}
+  <dt>API key</dt>
+  <dd><tt>{{ user.api_key.key }}</tt></dd>
+  {% endif %}
+</dl>
+{% endblock %}

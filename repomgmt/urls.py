@@ -68,6 +68,10 @@ urlpatterns = patterns('',
     url(r'^puppet/(?P<build_record_id>\w+)/$',
         'repomgmt.views.puppet_manifest'),
 
+    # User page
+    url(r'^users/me/$', 'repomgmt.views.redirect_to_self'),
+    url(r'^users/(?P<username>\w+)/$', 'repomgmt.views.user_details'),
+
     # Front page
     url(r'^$', 'repomgmt.views.front_page'),
 )

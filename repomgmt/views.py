@@ -17,6 +17,7 @@
 #
 from django import forms
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
@@ -267,6 +268,16 @@ def tarball_list(request):
 def builder_new(request):
     utils.start_new_worker_node()
     return HttpResponse('created', 'text/plain')
+
+
+def redirect_to_self(request):
+    return HttpResponseRedirect('/users/%s' % (request.user.username,))
+
+
+def user_details(request, username):
+    user = get_object_or_404(User, username=username)
+    return render(request, 'user.html',
+                          {'userobj': user})
 
 
 def front_page(request):
