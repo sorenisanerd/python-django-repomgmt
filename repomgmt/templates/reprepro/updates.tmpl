@@ -1,0 +1,5 @@
+{% for series in repository.not_closed_series %}{% if series.update_from %}Name: {{ series.update_from.repository.name }}-{{ series.update_from.name }}
+Method: {{ settings.APT_REPO_BASE_URL }}{{ series.update_from.repository.name }}
+Suite: {{ series.update_from.name }}-proposed
+
+{% endif %}{% endfor %}
