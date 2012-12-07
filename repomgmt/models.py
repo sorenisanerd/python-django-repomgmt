@@ -227,19 +227,17 @@ class Series(models.Model):
         else:
             newly_created = True
 
-        series = super(Series, self).save(*args, **kwargs)
+        super(Series, self).save(*args, **kwargs)
 
         if newly_created:
-            if series.update_from:
-                for subscription in series.update_from.subscription_set.all():
+            if self.update_from:
+                for subscription in self.update_from.subscription_set.all():
                     # This creates a new subscription
                     subscription.pk = None
-                    subscription.target_series = series
+                    subscription.target_series = self
                     subscription.save()
 
-            series.update()
-
-        return series
+            self.update()
 
     def freeze(self):
         self.state = Series.FROZEN
