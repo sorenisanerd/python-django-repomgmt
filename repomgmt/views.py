@@ -15,9 +15,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-from django import forms
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.sites.models import get_current_site
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
@@ -276,6 +277,12 @@ def builder_new(request):
     return HttpResponse('created', 'text/plain')
 
 
+def docs_api(request):
+    return render(request, 'docs/api.html',
+                           {'site': get_current_site(request)})
+
+
+@login_required
 def redirect_to_self(request):
     return HttpResponseRedirect('/users/%s' % (request.user.username,))
 

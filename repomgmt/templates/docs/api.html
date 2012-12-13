@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<h1>API reference</h1>
+<p>Some core functionality of this system is available over a REST-based API. Functionality is added to the API on an as-needed basis. If you need something exposed in the API, please don't hesitate to get in touch.</p>
+<h3>Authentication</h3>
+<p>The API requires authentication. You can find your API key <a href="{% url this_user %}">here</a>.</p>
+<p>There are a couple of different ways to provide your credentials (supposing your username is "sorhanse" and your api key is "204db7bcfafb12345606b89eb3b9b715b09905c8"):
+  <ul>
+    <li>As an HTTP header:
+<pre>
+Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8
+</pre></li>
+    <li>As GET parameters: <pre>http://example.com/api/v1/entries/?username=sorhanse&api_key=204db7bcfafb12345606b89eb3b9b715b09905c8</pre></li>
+  </ul>
+</p>
+<h3>Interacting with the API</h3>
+<p>The API can be reached at http://{{ site.domain }}{% url api_v1_top_level "v1" %}.</p>
+<p>Please refer to <a href="http://django-tastypie.readthedocs.org/en/latest/interacting.html">the tastypie documentation</a> for how to interact with the API (tastypie is the library that drives the API).</p>
+<h4>Special operations</h4>
+<p>In addition to the standard operations offered automatically by tastypie, the Series objects offer an extra feature. Issuing a <code>POST</code> request agsinst a Series object with <code>{"action": "promote"}</code> (or the XML equivalent) will promote all packages from the series's <code>-proposed</code> pocket to the stable pocket.</p>
+
+{% endblock %}

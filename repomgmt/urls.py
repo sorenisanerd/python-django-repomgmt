@@ -73,12 +73,15 @@ urlpatterns = patterns('',
     url(r'^repositories/promote$',
         'repomgmt.views.promote_series', name='promote_series'),
 
+    # API doc
+    url(r'^docs/api/$', 'repomgmt.views.docs_api', name='docs_api'),
+
     # Puppet
     url(r'^puppet/(?P<build_record_id>\w+)/$',
         'repomgmt.views.puppet_manifest'),
 
     # User page
-    url(r'^users/me/$', 'repomgmt.views.redirect_to_self'),
+    url(r'^users/me/$', 'repomgmt.views.redirect_to_self', name='this_user'),
     url(r'^users/(?P<username>\w+)/$', 'repomgmt.views.user_details'),
 
     # Front page
