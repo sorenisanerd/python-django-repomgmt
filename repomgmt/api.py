@@ -84,13 +84,50 @@ class MultiAuthentication(object):
         except AttributeError:
             return 'nouser'
 
+class ApiKeyAuthenticationWithHeaderSupport(ApiKeyAuthentication):
+    def extract_credentials(self, request):
+        if request.META.get('HTTP_AUTHORIZATION') and request.META['HTTP_AUTHORIZATION'].lower().startswith('apikey '):
+            (auth_type, data) = request.META['HTTP_AUTHORIZATION'].split()
+
+            if auth_type.lower() != 'apikey':
+                raise ValueError("Incorrect authorization header.")
+
+            username, api_key = data.split(':', 1)
+        else:
+            username = request.GET.get('username') or request.POST.get('username')
+            api_key = request.GET.get('api_key') or request.POST.get('api_key')
+
+        return username, api_key
+
+    def is_authenticated(self, request, **kwargs):
+        """
+        Finds the user and checks their API key.
+        
+        Should return either ``True`` if allowed, ``False`` if not or an
+        ``HttpResponse`` if you need something custom.
+        """
+        from django.contrib.auth.models import User
+        
+        try:
+            username, api_key = self.extract_credentials(request)
+        except ValueError:
+            return self._unauthorized()
+
+        try:
+            user = User.objects.get(username=username)
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            return self._unauthorized()
+        
+        request.user = user
+        return self.get_key(user, api_key)
+
 
 class ArchitectureResource(ModelResource):
     class Meta:
         queryset = Architecture.objects.all()
         resource_name = 'architecture'
         authentication = MultiAuthentication(BasicAuthentication(),
-                                             ApiKeyAuthentication())
+                                             ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
 
@@ -103,7 +140,7 @@ class RepositoryResource(ModelResource):
         queryset = Repository.objects.all()
         resource_name = 'repository'
         authentication = MultiAuthentication(BasicAuthentication(),
-                                             ApiKeyAuthentication())
+                                             ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
 
@@ -119,7 +156,7 @@ class SeriesResource(ModelResource):
         queryset = Series.objects.all()
         resource_name = 'series'
         authentication = MultiAuthentication(BasicAuthentication(),
-                                             ApiKeyAuthentication())
+                                             ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
 
