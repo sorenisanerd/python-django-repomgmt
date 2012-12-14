@@ -73,8 +73,9 @@ urlpatterns = patterns('',
     url(r'^repositories/promote$',
         'repomgmt.views.promote_series', name='promote_series'),
 
-    # API doc
+    # docs
     url(r'^docs/api/$', 'repomgmt.views.docs_api', name='docs_api'),
+    url(r'^docs/workflow/$', 'repomgmt.views.docs_workflow', name='docs_workflow'),
 
     # Puppet
     url(r'^puppet/(?P<build_record_id>\w+)/$',

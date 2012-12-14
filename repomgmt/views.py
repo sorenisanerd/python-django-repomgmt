@@ -282,6 +282,11 @@ def docs_api(request):
                            {'site': get_current_site(request)})
 
 
+def docs_workflow(request):
+    return render(request, 'docs/workflow.html',
+                           {'site': get_current_site(request)})
+
+
 @login_required
 def redirect_to_self(request):
     return HttpResponseRedirect('/users/%s' % (request.user.username,))

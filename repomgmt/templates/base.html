@@ -42,8 +42,6 @@
                 <div class="nav-collapse collapse">
                   <ul class="nav">
                     <li><a href="#">Home</a></li>
-                    <li><a href="{% url docs_api %}">API</a></li>
-                    <li><a href="#contact">Contact</a></li>
                   </ul>
                 </div><!--/.nav-collapse -->
                 <ul class="nav pull-right">
@@ -73,6 +71,9 @@
               <li><a href="{% url repository_list %}">APT repositories</a></li>
               <li class="nav-header">Autobuilding</li>
               <li><a href="{% url pkg_sources_list %}">Package sources</a></li>
+              <li class="nav-header">Documentation</li>
+              <li><a href="{% url docs_api %}">API</a></li>
+              <li><a href="{% url docs_workflow %}">Workflow</a></li>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->

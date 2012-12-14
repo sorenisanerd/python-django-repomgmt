@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<h1>Workflow</h1>
+<p>This system imposes a specific workflow on code and repository management. It hosts a number of repositories, each with its own set of series. Each series has three distinct "pockets". As an example, suppose there's a repository called "cisco" which has (amongst others) a series called "folsom". The three pockets for this series would be:
+<ul>
+        <li>folsom (sometimes referred to as "the stable pocket")</li>
+        <li>folsom-proposed</li>
+        <li>folsom-queued</li>
+</ul></p>
+<p>The .changes file will list the stable pocket as its target distribution. The repomgmt system will put the uploads into the -proposed pocket. From here, they're built and the resulting binaries land in the -proposed pocket as well.</p>
+
+<p>Integration testing is meant to be done based on the contents of the -proposed pocket. If testing is succesful, the contents of the -proposed pocket can get "promoted" to the stable pocket, effectively publishing the new set of packages to end users.</p>
+
+<p>To ensure a consistent test run, the series can be "frozen" for testing. While frozen, any new uploads will land in the -queued pocket. Once the series moves from "frozen" to any of the other states (i.e. when it's "thawed"), everything in -queued gets pushed to -proposed.</p>
+
+<p>In short:
+<dl>
+        <dt>Stable pocket</dt>
+        <dd>Packages here are supposed to have been thoroughly tested. It should be safe for end users pull from this at any time.</dd>
+        <dt>-proposed pocket</dt>
+        <dd>Testing grounds. Anything new lands here first so that it can be tested before getting pushed to end users.</dd>
+        <dt>-queued pocket</dt>
+        <dd>A temporary holding place for packages uploaded while -proposed is frozen for testing.</dd>
+</dl></p>
+
+{% endblock %}
+
