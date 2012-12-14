@@ -18,7 +18,6 @@
 import textwrap
 from django.core.management.base import BaseCommand
 from repomgmt.models import Repository
-from repomgmt.utils import run_cmd
 
 
 class Command(BaseCommand):
@@ -27,22 +26,5 @@ class Command(BaseCommand):
 
     def handle(self, repo_arg, **options):
         repo = Repository.objects.get(name=repo_arg)
-        if repo.signing_key_id:
-            print 'Repo already has a signing key.'
-            return
-        output = run_cmd(['gpg', '--batch', '--gen-key'],
-                         input=textwrap.dedent('''\
-                                               Key-Type: 1
-                                               Key-Length: 4096
-                                               Subkey-Type: ELG-E
-                                               Subkey-Length: 4096
-                                               Name-Real: %s repository
-                                               Expire-Date: 0
-                                               %%commit''' % repo_arg))
-        for l in output.split('\n'):
-            if l.startswith('gpg: key '):
-                key_id = l.split(' ')[2]
-
-        repo.signing_key_id = key_id
-        repo.signing_key.public_key
+        repo.create_key()
         repo.save()

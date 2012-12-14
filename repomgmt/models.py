@@ -95,6 +95,27 @@ class Repository(models.Model):
     def build_nodes(self):
         return BuildNode.objects.filter(buildrecord__series__repository=self)
 
+    def create_key(self):
+        if self.signing_key_id:
+            return
+
+        output = utils.run_cmd(['gpg', '--batch', '--gen-key'],
+                                input=textwrap.dedent('''\
+                                               Key-Type: 1
+                                               Key-Length: 4096
+                                               Subkey-Type: ELG-E
+                                               Subkey-Length: 4096
+                                               Name-Real: %s repository
+                                               Expire-Date: 0
+                                               %%commit''' % self.name))
+
+        for l in output.split('\n'):
+            if l.startswith('gpg: key '):
+                key_id = l.split(' ')[2]
+
+        self.signing_key_id = key_id
+        self.signing_key.public_key
+
     def write_configuration(self):
         logger.debug('Writing out config for %s' % (self.name,))
 
@@ -133,6 +154,7 @@ class Repository(models.Model):
 
     def save(self, *args, **kwargs):
         self.write_configuration()
+        self.create_key()
         return super(Repository, self).save(*args, **kwargs)
 
 
