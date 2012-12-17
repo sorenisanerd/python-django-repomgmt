@@ -48,7 +48,7 @@ curl -v -H "Content-Type: application/json" \
                "numerical_version": "2012.2",
                "repository": "/api/v1/repository/cisco/",
                "state": "Active development" }' \
-     'http://apt.ctocllab.cisco.com/api/v1/series/sorhanse/'
+     'http://apt.ctocllab.cisco.com/api/v1/series/'
 </pre>
 <h4>Bootstrap from existing series</h4>
 Add a <code>based_on</code> attribute to the data.
@@ -61,7 +61,7 @@ curl -v -H "Content-Type: application/json" \
                "repository": "/api/v1/repository/cisco/",
                "state": "Active development",
                "based_on": "/api/v1/series/cisco/essex"}' \
-     'http://apt.ctocllab.cisco.com/api/v1/series/sorhanse/'
+     'http://apt.ctocllab.cisco.com/api/v1/series/'
 
 </pre>
 {% endblock %}
