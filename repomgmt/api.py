@@ -27,7 +27,7 @@ from tastypie.authorization import DjangoAuthorization
 from tastypie.bundle import Bundle
 from tastypie.models import create_api_key
 from tastypie.resources import ModelResource
-from repomgmt.models import Architecture, Repository, Series
+from repomgmt.models import Architecture, Repository, Series, UbuntuSeries
 from tastypie.serializers import Serializer
 
 api = Api(api_name='v1')
@@ -134,7 +134,7 @@ class ArchitectureResource(ModelResource):
 
 class RepositoryResource(ModelResource):
     series = fields.ToManyField("repomgmt.api.SeriesResource", 'series_set',
-                                related_name='repository')
+                                related_name='repository', null=True)
 
     class Meta:
         queryset = Repository.objects.all()
@@ -151,6 +151,8 @@ class HttpAccepted(http.HttpResponse):
 
 class SeriesResource(ModelResource):
     repository = fields.ForeignKey(RepositoryResource, 'repository')
+    base_ubuntu_series = fields.CharField()
+    based_on = fields.ForeignKey('repomgmt.api.SeriesResource', 'update_from', null=True)
 
     class Meta:
         queryset = Series.objects.all()
@@ -161,8 +163,10 @@ class SeriesResource(ModelResource):
         serializer = PrettyJSONSerializer()
 
     def post_detail(self, request, **kwargs):
-        deserialized = self.deserialize(request, request.raw_post_data, format=request.META.get('CONTENT_TYPE', 'application/json'))
-        deserialized = self.alter_deserialized_detail_data(request, deserialized)
+        deserialized = self.deserialize(request, request.raw_post_data,
+                                        format=request.META.get('CONTENT_TYPE', 'application/json'))
+        deserialized = self.alter_deserialized_detail_data(request,
+                                                           deserialized)
         obj = self.obj_get(request)
         if deserialized.get('action', None) == 'promote':
             obj.promote()
@@ -191,6 +195,25 @@ class SeriesResource(ModelResource):
         return [
             url(r"^(?P<resource_name>%s)/(?P<repository__name>[\w\d_.-]+)/(?P<name>[\w\d_.-]+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
             ]
+
+    def hydrate_base_ubuntu_series(self, bundle):
+        bundle.obj.base_ubuntu_series = UbuntuSeries.objects.filter(name__iendswith=bundle.data['base_ubuntu_series'])[0]
+        return bundle
+
+    def dehydrate_base_ubuntu_series(self, bundle):
+        return bundle.obj.base_ubuntu_series.name
+
+    def hydrate_state(self, bundle):
+        try:
+            state_id = int(bundle.data['state'])
+            bundle.data['state'] = state_id
+        except ValueError:
+            for state_id, state_name in Series.SERIES_STATES:
+                if bundle.data['state'] == state_name:
+                    bundle.data['state'] = state_id
+                    break
+
+        return bundle
 
     def dehydrate_state(self, bundle):
         return bundle.obj.get_state_display()

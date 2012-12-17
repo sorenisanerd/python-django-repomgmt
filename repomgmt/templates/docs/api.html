@@ -19,5 +19,49 @@ Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8
 <p>Please refer to <a href="http://django-tastypie.readthedocs.org/en/latest/interacting.html">the tastypie documentation</a> for how to interact with the API (tastypie is the library that drives the API).</p>
 <h4>Special operations</h4>
 <p>In addition to the standard operations offered automatically by tastypie, the Series objects offer an extra feature. Issuing a <code>POST</code> request agsinst a Series object with <code>{"action": "promote"}</code> (or the XML equivalent) will promote all packages from the series's <code>-proposed</code> pocket to the stable pocket.</p>
+<h2>Examples</h2>
+<h3>Creating a new repository</h3>
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X POST \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     --data '{ "contact":
+               "sorhanse@cisco.com",
+               "name": "sorhanse",
+               "series": [] }' \
+     'http://apt.ctocllab.cisco.com/api/v1/repository/'
+</pre>
+Mind you, this may take a while on account of it generating a new GPG key for you, which is a rather expensive thing to do.
+<h3>Deleting a repository</h3>
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X DELETE \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     'http://apt.ctocllab.cisco.com/api/v1/repository/sorhanse/'
+</pre>
+<h3>Creating a series</h3>
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X POST \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     --data '{ "name": "folsom",
+               "numerical_version": "2012.2",
+               "repository": "/api/v1/repository/cisco/",
+               "state": "Active development" }' \
+     'http://apt.ctocllab.cisco.com/api/v1/series/sorhanse/'
+</pre>
+<h4>Bootstrap from existing series</h4>
+Add a <code>based_on</code> attribute to the data.
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X POST \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     --data '{ "name": "folsom",
+               "numerical_version": "2012.2",
+               "repository": "/api/v1/repository/cisco/",
+               "state": "Active development",
+               "based_on": "/api/v1/series/cisco/essex"}' \
+     'http://apt.ctocllab.cisco.com/api/v1/series/sorhanse/'
 
+</pre>
 {% endblock %}
