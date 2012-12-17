@@ -27,7 +27,8 @@ from tastypie.authorization import DjangoAuthorization
 from tastypie.bundle import Bundle
 from tastypie.models import create_api_key
 from tastypie.resources import ModelResource
-from repomgmt.models import Architecture, Repository, Series, UbuntuSeries
+from repomgmt.models import Architecture, Repository, PackageSource, Series
+from repomgmt.models import Subscription, UbuntuSeries
 from tastypie.serializers import Serializer
 
 api = Api(api_name='v1')
@@ -102,12 +103,12 @@ class ApiKeyAuthenticationWithHeaderSupport(ApiKeyAuthentication):
     def is_authenticated(self, request, **kwargs):
         """
         Finds the user and checks their API key.
-        
+
         Should return either ``True`` if allowed, ``False`` if not or an
         ``HttpResponse`` if you need something custom.
         """
         from django.contrib.auth.models import User
-        
+
         try:
             username, api_key = self.extract_credentials(request)
         except ValueError:
@@ -117,7 +118,7 @@ class ApiKeyAuthenticationWithHeaderSupport(ApiKeyAuthentication):
             user = User.objects.get(username=username)
         except (User.DoesNotExist, User.MultipleObjectsReturned):
             return self._unauthorized()
-        
+
         request.user = user
         return self.get_key(user, api_key)
 
@@ -126,6 +127,16 @@ class ArchitectureResource(ModelResource):
     class Meta:
         queryset = Architecture.objects.all()
         resource_name = 'architecture'
+        authentication = MultiAuthentication(BasicAuthentication(),
+                                             ApiKeyAuthenticationWithHeaderSupport())
+        authorization = DjangoAuthorization()
+        serializer = PrettyJSONSerializer()
+
+
+class PackageSourceResource(ModelResource):
+    class Meta:
+        queryset = PackageSource.objects.all()
+        resource_name = 'packagesource'
         authentication = MultiAuthentication(BasicAuthentication(),
                                              ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
@@ -153,6 +164,8 @@ class SeriesResource(ModelResource):
     repository = fields.ForeignKey(RepositoryResource, 'repository')
     base_ubuntu_series = fields.CharField()
     based_on = fields.ForeignKey('repomgmt.api.SeriesResource', 'update_from', null=True)
+    subscriptions = fields.ToManyField("repomgmt.api.SubscriptionResource", 'subscription_set')
+
 
     class Meta:
         queryset = Series.objects.all()
@@ -218,8 +231,24 @@ class SeriesResource(ModelResource):
     def dehydrate_state(self, bundle):
         return bundle.obj.get_state_display()
 
+class SubscriptionResource(ModelResource):
+    package_source = fields.ToOneField(PackageSourceResource, 'source')
+    destination_series = fields.ToOneField(SeriesResource, 'target_series')
+
+    class Meta:
+        queryset = Subscription.objects.all()
+        resource_name = 'subscription'
+        authentication = MultiAuthentication(BasicAuthentication(),
+                                             ApiKeyAuthenticationWithHeaderSupport())
+        authorization = DjangoAuthorization()
+        serializer = PrettyJSONSerializer()
+
+
+
 api.register(ArchitectureResource())
 api.register(RepositoryResource())
 api.register(SeriesResource())
+api.register(SubscriptionResource())
+api.register(PackageSourceResource())
 
 models.signals.post_save.connect(create_api_key, sender=User)

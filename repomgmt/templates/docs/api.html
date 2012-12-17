@@ -29,7 +29,7 @@ curl -v -H "Content-Type: application/json" \
                "sorhanse@cisco.com",
                "name": "sorhanse",
                "series": [] }' \
-     'http://apt.ctocllab.cisco.com/api/v1/repository/'
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}repository/'
 </pre>
 Mind you, this may take a while on account of it generating a new GPG key for you, which is a rather expensive thing to do.
 <h3>Deleting a repository</h3>
@@ -37,7 +37,7 @@ Mind you, this may take a while on account of it generating a new GPG key for yo
 curl -v -H "Content-Type: application/json" \
      -X DELETE \
      --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
-     'http://apt.ctocllab.cisco.com/api/v1/repository/sorhanse/'
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}repository/sorhanse/'
 </pre>
 <h3>Creating a series</h3>
 <pre>
@@ -48,7 +48,7 @@ curl -v -H "Content-Type: application/json" \
                "numerical_version": "2012.2",
                "repository": "/api/v1/repository/cisco/",
                "state": "Active development" }' \
-     'http://apt.ctocllab.cisco.com/api/v1/series/'
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}series/'
 </pre>
 <h4>Bootstrap from existing series</h4>
 Add a <code>based_on</code> attribute to the data.
@@ -61,7 +61,38 @@ curl -v -H "Content-Type: application/json" \
                "repository": "/api/v1/repository/cisco/",
                "state": "Active development",
                "based_on": "/api/v1/series/cisco/essex"}' \
-     'http://apt.ctocllab.cisco.com/api/v1/series/'
-
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}series/'
 </pre>
+<h3>Creating a new package source</h3>
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X POST \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     --data '{ "code_url": "https://github.com/sorenh/nova.git#testing",
+               "flavor": "OpenStack",
+               "name": "Sorens Testing Branch",
+               "packaging_url": "http://bazaar.launchpad.net/~cisco-openstack/nova/folsom" }' \
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}packagesource/'
+</pre>
+<h3>Subscribing a Series to the new package source</h3>
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X POST \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     --data '{ "package_source": "/api/v1/packagesource/1/",
+               "destination_series": "/api/v1/series/sorhanse/folsom/",
+               "counter": 1 }' \
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}subscription/'
+</pre>
+<h3>Changing an existing subscriptiong</h3>
+<pre>
+curl -v -H "Content-Type: application/json" \
+     -X PATCH \
+     --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
+     --data '{ "package_source": "/api/v1/packagesource/3/" }'
+     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}subscription/3/'
+</pre>
+
+
+
 {% endblock %}
