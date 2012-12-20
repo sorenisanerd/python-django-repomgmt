@@ -52,7 +52,10 @@ def process_build_queue():
 @task()
 def process_incoming():
     for repo in Repository.objects.all():
-        repo.process_incoming()
+        try:
+            repo.process_incoming()
+        except Exception, e:
+            logger.error('Error processing incoming for %s', repo.name, exc_info=e)
 
 
 @task()
