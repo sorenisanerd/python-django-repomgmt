@@ -15,7 +15,7 @@ incoming = {{ settings.FTP_BASE_URL }}/%(repo)s/
 
 Once that's done, you can upload to this repository like so:
 <pre>
-dput repo:{{ repository.name }} foo_1.2-3_source.dsc
+dput repo:{{ repository.name }} foo_1.2-3_source.changes
 </pre>
 The upload will land in the series specified in the <code>.changes</code> file (which in turn is based on what you put in your <code>debian/changelog</code>). Packages with "<code>Distribution: foo</code>" will land in <code>foo-proposed</code>. Uploads are never accepted directly into <code>foo</code>.
 </p>
