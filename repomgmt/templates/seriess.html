@@ -10,7 +10,7 @@ Once that's done, you can add this snippet to your <code>~/.dput.cf</code> (crea
 method   = ftp
 fqdn     = {{ settings.FTP_IP }}
 login    = anonymous
-incoming = {{ settings.FTP_BASE_URL }}/%(repo)s/
+incoming = {{ settings.FTP_BASE_PATH }}/%(repo)s/
 </pre>
 
 Once that's done, you can upload to this repository like so:

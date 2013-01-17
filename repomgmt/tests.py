@@ -15,8 +15,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+from contextlib import contextmanager
 import mock
 import textwrap
+from StringIO import StringIO
 
 from django.test import TestCase, client
 from django.test.utils import override_settings
@@ -216,10 +218,12 @@ class RepositoryTests(TestCase):
         self.assertContains(response,
                             '<form action="/repositories/" method="post">')
 
-        response = c.post('/repositories/', {'action': 'create',
-                                             'name': 'foo',
-                                             'contact': 'foo@example.com'})
-        self.assertRedirects(response, '/repositories/')
+        with mock.patch('repomgmt.models.Repository.create_key') as create_key:
+            response = c.post('/repositories/', {'action': 'create',
+                                                 'name': 'foo',
+                                                 'contact': 'foo@example.com'})
+            self.assertRedirects(response, '/repositories/')
+            create_key.assert_called_with()
 
         new_repos = set(Repository.objects.all()) - repo_set
         self.assertEquals(len(new_repos), 1)
@@ -227,3 +231,43 @@ class RepositoryTests(TestCase):
 
         self.assertEquals(new_repo.name, 'foo')
         self.assertEquals(new_repo.contact, 'foo@example.com')
+
+class ImportDscToGitCommandTests(TestCase):
+    def setUp(self):
+        mod = __import__("repomgmt.management.commands.repo-import-dsc-to-git")
+        self.module = getattr(mod.management.commands, 'repo-import-dsc-to-git')
+        return super(ImportDscToGitCommandTests, self).setUp()
+
+    def test_get_repository_name(self):
+        basedir = '/base/dir'
+        with self.settings(BASE_REPO_DIR=basedir):
+            name = self.module.get_repository_name({}, {'REPREPRO_BASE_DIR': '/base/dir/myrepo'})
+            self.assertEquals(name, 'myrepo')
+
+    def test_get_repository_name_trailing_slash(self):
+        basedir = '/base/dir'
+        with self.settings(BASE_REPO_DIR=basedir):
+            name = self.module.get_repository_name({}, {'REPREPRO_BASE_DIR': '/base/dir/myrepo/'})
+            self.assertEquals(name, 'myrepo')
+
+    def test_get_repository_name_from_options(self):
+        basedir = '/base/dir'
+        with self.settings(BASE_REPO_DIR=basedir):
+            name = self.module.get_repository_name({'repository': 'otherrepo'},
+                                                   {'REPREPRO_BASE_DIR': '/base/dir/myrepo'})
+            self.assertEquals(name, 'otherrepo')
+
+    def test_parse_dsc_file(self):
+        f = StringIO()
+        @contextmanager
+        def fake_open(filename, mode):
+            self.assertEquals(mode, 'r')
+            yield f
+            f.close()
+
+        with mock.patch('__builtin__.open', fake_open):
+            with mock.patch('repomgmt.management.commands.repo-import-dsc-to-git.Dsc') as Dsc:
+                self.module.parse_dsc_file('foo')
+                self.assertTrue(f.closed)
+                Dsc.assert_called_with(f)
+

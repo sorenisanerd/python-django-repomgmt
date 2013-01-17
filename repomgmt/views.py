@@ -165,7 +165,8 @@ def series_list(request, repository_name):
                 return new_series_form(request, repository_name)
 
     return render(request, 'seriess.html',
-                          {'repository': repository})
+                          {'repository': repository,
+                           'settings': settings})
 
 
 def package_list(request, repository_name, series_name):

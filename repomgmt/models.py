@@ -134,7 +134,7 @@ class Repository(models.Model):
 
         for f in ['distributions', 'incoming', 'options', 'pulls',
                   'uploaders', 'create-build-records.sh', 'dput.cf',
-                  'process-changes.sh', 'updates']:
+                  'process-changes.sh', 'import-dsc-to-git.sh', 'updates']:
             s = render_to_string('reprepro/%s.tmpl' % (f,),
                                  {'repository': self,
                                   'architectures': Architecture.objects.all(),
