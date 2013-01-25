@@ -25,6 +25,7 @@ from tastypie.api import Api
 from tastypie.authentication import BasicAuthentication, ApiKeyAuthentication
 from tastypie.authorization import DjangoAuthorization
 from tastypie.bundle import Bundle
+from tastypie.constants import ALL_WITH_RELATIONS
 from tastypie.models import create_api_key
 from tastypie.resources import ModelResource
 from repomgmt.models import Architecture, Repository, PackageSource, Series
@@ -141,6 +142,7 @@ class PackageSourceResource(ModelResource):
                                              ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
+        filtering = {'id': ALL_WITH_RELATIONS}
 
 
 class RepositoryResource(ModelResource):
@@ -154,6 +156,7 @@ class RepositoryResource(ModelResource):
                                              ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
+        filtering = {'name': ALL_WITH_RELATIONS}
 
 
 class HttpAccepted(http.HttpResponse):
@@ -174,6 +177,28 @@ class SeriesResource(ModelResource):
                                              ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
+        filtering = {'repository': ALL_WITH_RELATIONS,
+                     'name': ALL_WITH_RELATIONS,
+                     'id': ALL_WITH_RELATIONS}
+
+
+    @classmethod
+    def api_field_from_django_field(cls, f, default=fields.CharField):
+        result = default
+        
+        if f.name == 'state':
+            return fields.CharField
+        elif f.get_internal_type() in ('DateField', 'DateTimeField'):
+            result = fields.DateTimeField
+        elif f.get_internal_type() in ('BooleanField', 'NullBooleanField'):
+            result = fields.BooleanField
+        elif f.get_internal_type() in ('DecimalField', 'FloatField'):
+            result = fields.FloatField
+        elif f.get_internal_type() in ('IntegerField', 'PositiveIntegerField', 'PositiveSmallIntegerField', 'SmallIntegerField'):
+            result = fields.IntegerField
+        elif f.get_internal_type() in ('FileField', 'ImageField'):
+            result = fields.FileField
+        return result
 
     def post_detail(self, request, **kwargs):
         deserialized = self.deserialize(request, request.raw_post_data,
@@ -186,7 +211,10 @@ class SeriesResource(ModelResource):
             return HttpAccepted()
         return http.HttpBadRequest()
 
-    def get_resource_uri(self, bundle_or_obj):
+    def __get_resource_uri(self, bundle_or_obj=None, url_name='api_dispatch_list'):
+        if bundle_or_obj is None:
+            return super(SeriesResource, self).get_resource_uri(bundle_or_obj, url_name)
+
         if isinstance(bundle_or_obj, Bundle):
             obj = bundle_or_obj.obj
         else:
@@ -204,7 +232,7 @@ class SeriesResource(ModelResource):
         return self._build_reverse_url("api_dispatch_detail",
                                        kwargs=kwargs)
 
-    def override_urls(self):
+    def __override_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<repository__name>[\w\d_.-]+)/(?P<name>[\w\d_.-]+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
             ]
@@ -233,7 +261,7 @@ class SeriesResource(ModelResource):
 
 class SubscriptionResource(ModelResource):
     package_source = fields.ToOneField(PackageSourceResource, 'source')
-    destination_series = fields.ToOneField(SeriesResource, 'target_series')
+    destination_series = fields.ForeignKey(SeriesResource, 'target_series')
 
     class Meta:
         queryset = Subscription.objects.all()
@@ -242,6 +270,9 @@ class SubscriptionResource(ModelResource):
                                              ApiKeyAuthenticationWithHeaderSupport())
         authorization = DjangoAuthorization()
         serializer = PrettyJSONSerializer()
+        filtering = {'destination_series': ALL_WITH_RELATIONS,
+                     'package_source': ALL_WITH_RELATIONS,
+                     'id': ALL_WITH_RELATIONS}
 
 
 
