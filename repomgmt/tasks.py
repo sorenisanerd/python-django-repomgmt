@@ -60,6 +60,5 @@ def process_incoming():
 
 @task()
 def poll_upstreams():
-    for repo in Repository.objects.all():
-        for pkg_src in PackageSource.objects.all():
-            pkg_src.poll()
+    for pkg_src in PackageSource.objects.all():
+        pkg_src.poll()
