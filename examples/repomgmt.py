@@ -75,8 +75,8 @@ def series_str(series):
     return '%s - %s' % (series.repository.name, series.name)
 
 
-def get_client(args):
-    return Client(args.url, auth=(args.username, args.password))
+def get_client(args, strict=True):
+    return Client(args.url, auth=(args.username, args.password), strict_field=strict)
 
 
 def repository_list(args):
@@ -107,6 +107,14 @@ def packagesource_create(args):
     obj_type = client.packagesource
     obj = obj_type(name=args.name, code_url=args.code_url,
                    packaging_url=args.packaging_url, flavor=args.flavor)
+    obj.save()
+
+
+def packagesource_rebuild(args):
+    client = get_client(args, strict=False)
+    obj_type = client.packagesource
+    obj = obj_type.objects.get(id=args.id)
+    obj.last_seen_pkg_rev = ''
     obj.save()
 
 
@@ -200,6 +208,10 @@ def main(argv=sys.argv):
     package_source_delete_parser.add_argument('id', help='id of the package source to be deleted')
     package_source_delete_parser.set_defaults(func=packagesource_delete)
 
+    package_source_rebuild_parser = subparsers.add_parser('packagesource-rebuild', description='Trigger rebuild of package source')
+    package_source_rebuild_parser.add_argument('id', help='id of the package source to trigger a rebuild of')
+    package_source_rebuild_parser.set_defaults(func=packagesource_rebuild)
+
     subscription_create_parser = subparsers.add_parser('subscription-create', description='Create subscription')
     subscription_create_parser.add_argument('repository', help='Repository name')
     subscription_create_parser.add_argument('series', help='Series name')
@@ -224,6 +236,7 @@ def main(argv=sys.argv):
     args.func(args)
     return True
 
+
 if __name__ == '__main__':
-     sys.exit([1,0][main()])
+    sys.exit([1, 0][main()])
 
