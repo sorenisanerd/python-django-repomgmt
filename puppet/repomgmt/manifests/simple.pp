@@ -18,7 +18,6 @@ class repomgmt:simple($user = 'ubuntu',admin_name = "Admin User",admin_email = "
   package { ["Django",
              "django-celery",
              "django-tastypie",
-             "django-south",
              "django-registration",
              "python-novaclient",
              "south"]:
