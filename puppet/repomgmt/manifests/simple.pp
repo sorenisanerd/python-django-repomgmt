@@ -18,6 +18,8 @@ class repomgmt($user = 'ubuntu') {
   package { ["Django",
              "django-celery",
              "django-tastypie",
+             "django-south",
+             "django-registration",
              "python-novaclient",
              "south"]:
     provider => "pip",
