@@ -37,7 +37,7 @@ class repomgmt:simple($user = 'ubuntu',admin_name = "Admin User",admin_email = "
     require => Package['sbuild']
   }
 
-  exec { "/usr/bin/django-admin startproject buildd":
+  exec { "/usr/local/bin/django-admin.py startproject buildd":
     creates => "/home/$user/buildd",
     cwd => "/home/$user",
     user => $user
