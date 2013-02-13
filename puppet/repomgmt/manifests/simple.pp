@@ -65,6 +65,18 @@ class repomgmt::simple($user = 'ubuntu',
   exec { "/usr/bin/python /home/$user/buildd/manage.py syncdb --noinput":
     user => $user,
     refreshonly => true
+  } ~>
+  exec { "/usr/bin/python /home/$user/buildd/manage.py migrate djcelery --noinput":
+    user => $user,
+    refreshonly => true
+  } ~>
+  exec { "/usr/bin/python /home/$user/buildd/manage.py migrate repomgmt --noinput":
+    user => $user,
+    refreshonly => true
+  } ~>
+  exec { "/usr/bin/python /home/$user/buildd/manage.py migrate tastypie --noinput":
+    user => $user,
+    refreshonly => true
   }
 
   file { "/etc/vsftpd.conf":
