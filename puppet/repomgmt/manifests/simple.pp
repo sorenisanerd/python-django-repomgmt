@@ -11,6 +11,7 @@ class repomgmt::simple($user = 'ubuntu',
                        $post_mk_sbuild_customisation = undef,
                        $use_ec2_metadata_service = false) {
   $simple = true
+  $project_name = 'buildd'
 
   package { ["python-pip",
              "devscripts",

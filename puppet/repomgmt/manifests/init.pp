@@ -17,6 +17,7 @@ class repomgmt($user = 'buildd',
   include apache 
 
   $simple = false
+  $project_name = 'www'
 
   apache::vhost { "repomgmt":
     priority           => $priority,
