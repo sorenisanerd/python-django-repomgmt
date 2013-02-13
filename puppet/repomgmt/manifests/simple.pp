@@ -45,6 +45,7 @@ class repomgmt::simple($user = 'ubuntu',
     ensure => "present",
     managehome => true,
     groups => "sbuild",
+    shell => "/bin/bash",
     require => Package['sbuild']
   }
 

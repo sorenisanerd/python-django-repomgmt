@@ -65,6 +65,7 @@ class repomgmt($user = 'buildd',
     ensure => "present",
     managehome => true,
     groups => "sbuild",
+    shell => "/bin/bash",
     require => Package['sbuild']
   }
 
