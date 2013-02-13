@@ -1,4 +1,14 @@
-class repomgmt:simple($user = 'ubuntu',admin_name = "Admin User",admin_email = "email@example.com",$dbname = "repomgmt",$dbuser = "repomgmt",$dbpass = "repomgmtpass",$dbhost = "",$dbport = "",$secret_key = '!tuy9ozxr@zhr$8v3$41^3690dfnrim16yj8x5)4pi0bg%140l',$ftp_ip = $::ipaddress,$post_mk_sbuild_customisation = undef) {
+class repomgmt::simple($user = 'ubuntu',
+                       $admin_name = "Admin User",
+                       $admin_email = "email@example.com",
+                       $dbname = "repomgmt",
+                       $dbuser = "repomgmt",
+                       $dbpass = "repomgmtpass",
+                       $dbhost = "",
+                       $dbport = "",
+                       $secret_key = '!tuy9ozxr@zhr$8v3$41^3690dfnrim16yj8x5)4pi0bg%140l',
+                       $ftp_ip = $::ipaddress,
+                       $post_mk_sbuild_customisation = undef) {
   $simple = true
 
   package { ["python-pip",
