@@ -205,7 +205,7 @@ class SeriesResource(ModelResource):
                                         format=request.META.get('CONTENT_TYPE', 'application/json'))
         deserialized = self.alter_deserialized_detail_data(request,
                                                            deserialized)
-        obj = self.obj_get(request)
+        obj = self.cached_obj_get(request=request, **self.remove_api_resource_names(kwargs))
         if deserialized.get('action', None) == 'promote':
             obj.promote()
             return HttpAccepted()
