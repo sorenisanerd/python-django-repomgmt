@@ -1,0 +1,108 @@
+- fields: {signing_key_id: "12345678"}
+  model: repomgmt.repository
+  pk: normal
+- fields: {signing_key_id: "12345678"}
+  model: repomgmt.repository
+  pk: with-dash
+- fields: {signing_key_id: "12345678"}
+  model: repomgmt.repository
+  pk: with_underscore
+- fields: {signing_key_id: "12345678"}
+  model: repomgmt.repository
+  pk: with.dot
+- fields:
+    name: normal
+    repository: normal
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 1
+- fields:
+    name: with-dash
+    repository: normal
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 2
+- fields:
+    name: with_underscore
+    repository: normal
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 3
+- fields:
+    name: with.dot
+    repository: normal
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 4
+- fields:
+    name: normal
+    repository: with-dash
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 5
+- fields:
+    name: with-dash
+    repository: with-dash
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 6
+- fields:
+    name: with_underscore
+    repository: with-dash
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 7
+- fields:
+    name: with.dot
+    repository: with-dash
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 8
+- fields:
+    name: normal
+    repository: with_underscore
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 9
+- fields:
+    name: with-dash
+    repository: with_underscore
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 10
+- fields:
+    name: with_underscore
+    repository: with_underscore
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 11
+- fields:
+    name: with.dot
+    repository: with_underscore
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 12
+- fields:
+    name: normal
+    repository: with.dot
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 13
+- fields:
+    name: with-dash
+    repository: with.dot
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 14
+- fields:
+    name: with_underscore
+    repository: with.dot
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 15
+- fields:
+    name: with.dot
+    repository: with.dot
+    base_ubuntu_series: precise
+  model: repomgmt.series
+  pk: 16

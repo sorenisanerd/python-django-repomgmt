@@ -271,3 +271,50 @@ class ImportDscToGitCommandTests(TestCase):
                 self.assertTrue(f.closed)
                 Dsc.assert_called_with(f)
 
+
+class UrlMatchingTests(TestCase):
+    fixtures = ['repos.yaml']
+
+    def test_repository_list(self):
+        c = client.Client()
+        response = c.get('/repositories/')
+        self.assertEquals(response.status_code, 200)
+
+    def test_series_list(self):
+        for repo in Repository.objects.all():
+            c = client.Client()
+            response = c.get('/repositories/%s/' % (repo.name,))
+            self.assertEquals(response.status_code, 200)
+            self.assertIn('seriess.html',
+                          [t.name for t in response.templates])
+
+    def test_package_list(self):
+        with mock.patch('repomgmt.models.Series.get_source_packages') as get_source_packages:
+            for series in Series.objects.all():
+                c = client.Client()
+                url = '/repositories/%s/%s/' % (series.repository.name, series.name)
+                response = c.get(url)
+                self.assertEquals(response.status_code, 200)
+                self.assertIn('packages.html',
+                              [t.name for t in response.templates])
+
+    def test_new_repository_form(self):
+        c = client.Client()
+        response = c.get('/repositories/new/')
+        self.assertEquals(response.status_code, 200)
+        self.assertIn('new_repository_form.html',
+                      [t.name for t in response.templates])
+
+    def test_new_series_form(self):
+        for repo in Repository.objects.all():
+            c = client.Client()
+            response = c.get('/repositories/%s/new/' % (repo.name,))
+            self.assertEquals(response.status_code, 200)
+            self.assertIn('new_series_form.html',
+                          [t.name for t in response.templates])
+
+    def test_repository_key(self):
+        for repo in Repository.objects.all():
+            c = client.Client()
+            response = c.get('/repositories/%s/key/' % (repo.name,))
+            self.assertEquals(response.status_code, 200)

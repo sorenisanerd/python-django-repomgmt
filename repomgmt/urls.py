@@ -63,9 +63,9 @@ urlpatterns = patterns('',
 
     url(r'^repositories/(?P<repository_name>\S+)/key/$',
         'repomgmt.views.repository_public_key', name='repository_public_key'),
-    url(r'^repositories/(?P<repository_name>\S+)/$',
+    url(r'^repositories/(?P<repository_name>[^/]+)/$',
         'repomgmt.views.series_list', name='series_list'),
-    url(r'^repositories/(?P<repository_name>\S+)/new/$', 'repomgmt.views.new_series_form',
+    url(r'^repositories/(?P<repository_name>[^/]+)/new/$', 'repomgmt.views.new_series_form',
         name='new_series_form'),
 
     url(r'^repositories/(?P<repository_name>\S+)/(?P<series_name>\S+)/$',
