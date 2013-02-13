@@ -8,7 +8,8 @@ class repomgmt::simple($user = 'ubuntu',
                        $dbport = "",
                        $secret_key = '!tuy9ozxr@zhr$8v3$41^3690dfnrim16yj8x5)4pi0bg%140l',
                        $ftp_ip = $::ipaddress,
-                       $post_mk_sbuild_customisation = undef) {
+                       $post_mk_sbuild_customisation = undef,
+                       $use_ec2_metadata_service = false) {
   $simple = true
 
   package { ["python-pip",
