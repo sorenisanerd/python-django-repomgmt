@@ -39,8 +39,7 @@ class repomgmt($user = 'buildd',
     ensure => "installed",
   }
 
-  package { ["Django",
-             "django-celery",
+  package { ["django-celery",
              "django-tastypie",
              "django-south",
              "django-registration",
@@ -48,6 +47,12 @@ class repomgmt($user = 'buildd',
              "south"]:
     provider => "pip",
     ensure => "installed",
+    require => Package['python-pip']
+  }
+
+  package { "Django":
+    provider => "pip",
+    ensure => "1.4.3",
     require => Package['python-pip']
   }
 

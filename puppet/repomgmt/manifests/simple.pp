@@ -27,14 +27,19 @@ class repomgmt::simple($user = 'ubuntu',
     ensure => "installed",
   }
 
-  package { ["Django",
-             "django-celery",
+  package { ["django-celery",
              "django-tastypie",
              "django-registration",
              "python-novaclient",
              "south"]:
     provider => "pip",
     ensure => "installed",
+    require => Package['python-pip']
+  }
+
+  package { "Django":
+    provider => "pip",
+    ensure => "1.4.3",
     require => Package['python-pip']
   }
 
