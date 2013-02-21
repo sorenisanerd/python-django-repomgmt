@@ -25,5 +25,8 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         for pkg_src in PackageSource.objects.all():
-            print pkg_src
-            print pkg_src.poll()
+            try:
+                print pkg_src
+                print pkg_src.poll()
+            except Exception, e:
+                print e
