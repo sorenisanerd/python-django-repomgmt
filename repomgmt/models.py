@@ -46,6 +46,7 @@ if settings.TESTING:
 else:
     from novaclient.v1_1 import client
 
+from novaclient import exceptions as novaclient_exceptions
 
 from repomgmt import utils
 from repomgmt.exceptions import CommandFailed
@@ -901,18 +902,24 @@ class BuildNode(models.Model):
 
     def delete(self):
         if getattr(settings, 'USE_FLOATING_IPS', False):
-            floating_ip = self.ip
-            ref = self.cloud.client.floating_ips.find(ip=floating_ip)
-            logger.info('Unassigning floating ip %s from server %s on '
-                        'cloud %s.' % (floating_ip, self, self.cloud))
-            self.cloud_server.remove_floating_ip(floating_ip)
-            logger.info('Deleting floating ip %s on cloud %s.' %
-                        (floating_ip, self.cloud))
-            ref.delete()
+            try:
+                floating_ip = self.ip
+                ref = self.cloud.client.floating_ips.find(ip=floating_ip)
+                logger.info('Unassigning floating ip %s from server %s on '
+                            'cloud %s.' % (floating_ip, self, self.cloud))
+                self.cloud_server.remove_floating_ip(floating_ip)
+                logger.info('Deleting floating ip %s on cloud %s.' %
+                            (floating_ip, self.cloud))
+                ref.delete()
+            except novaclient_exceptions.NotFound:
+                logger.info('Node already gone, unable to release floating ip')
 
         logger.info('Deleting server %s on cloud %s.' %
                     (self, self.cloud))
-        self.cloud_server.delete()
+        try:
+            self.cloud_server.delete()
+        except novaclient_exceptions.NotFound:
+            logger.info('Node already gone, unable to delete it')
 
         if self.signing_key_id:
             logger.info('Deleting signing key for build node %s: %s' %
