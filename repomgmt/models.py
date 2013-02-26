@@ -571,7 +571,7 @@ class BuildRecord(models.Model):
             return
         elif summary['Status'] == 'failed':
             # Some dependencies could not be fulfilled.
-            if summary['Fail-Stage'] == 'intall-deps':
+            if summary['Fail-Stage'] == 'install-deps':
                 logger.debug('Build summary says installing deps failed for '
                              'build %r. Setting state accordingly.' % (self,))
                 self.update_state(self.DEPENDENCY_WAIT)
