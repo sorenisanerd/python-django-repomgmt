@@ -61,4 +61,7 @@ def process_incoming():
 @task()
 def poll_upstreams():
     for pkg_src in PackageSource.objects.all():
-        pkg_src.poll()
+        try:
+            pkg_src.poll()
+        except Exception, e:
+            logger.error('Error polling pkg_src %s', pkg_src, exc_info=e)
