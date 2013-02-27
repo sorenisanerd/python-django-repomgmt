@@ -54,7 +54,8 @@ def run_cmd(cmd, input=None, cwd=None, override_env=None,
 
     if proc.returncode != 0:
         raise CommandFailed('%r returned %d. Output: %s (stderr: %s)' %
-                            (cmd, proc.returncode, stdout, stderr))
+                            (cmd, proc.returncode, stdout, stderr),
+                            cmd, proc.returncode, stdout, stderr)
 
     return stdout
 

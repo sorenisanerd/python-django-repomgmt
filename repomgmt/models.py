@@ -1166,10 +1166,16 @@ class PackageSource(models.Model):
                               override_env={'DEBEMAIL': 'not-valid@example.com',
                                             'DEBFULLNAME': '%s Autobuilder' % (subscription.target_series.repository.name)})
 
-                utils.run_cmd(['bzr', 'bd', '-S',
-                               '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
-                               ],
-                              cwd=subscription.pkgdir)
+                try:
+                    utils.run_cmd(['bzr', 'bd', '-S',
+                                   '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
+                                  ],
+                                  cwd=subscription.pkgdir)
+                except CommandFailed, e:
+                    from django.core.mail import email_admins
+                    email_admins('"bzr bd" failed for %r' % (self,),
+                                 '%r failed.\nExit code: %d\nStdout: %s\n\nStderr: %s\n' % (e.cmd, e.returncode, e.stdout, e.stderr))
+                    raise
 
                 changes_files = glob(os.path.join(subscription.tmpdir, '*.changes'))
 
