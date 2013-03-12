@@ -1,5 +1,16 @@
 $tarball = "/var/lib/schroot/tarballs/chroot.tgz"
 
+package { "eatmydata": } ->
+exec { "divert-apt":
+  command => "/usr/sbin/dpkg-divert --rename --divert /usr/bin/apt-get.real --add /usr/bin/apt-get",
+  creates => "/usr/bin/apt-get.real"
+} -> file { "/usr/bin/apt-get":
+   content => '#!/bin/sh
+exec eatmydata "$0.real" "$@"
+',
+   owner => "root",
+   mode => 0755,
+} ->
 package { 'haveged': } ->
 package { 'sbuild': } ->
 user { "ubuntu":
@@ -28,6 +39,7 @@ root-groups=sbuild,root,admin
 source-root-users=sbuild,root,admin
 source-root-groups=sbuild,root,admin
 type=file
+command-prefix=eatmydata
 file=$tarball
 ",
 } ->

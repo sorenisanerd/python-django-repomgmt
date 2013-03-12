@@ -407,6 +407,7 @@ class ChrootTarball(models.Model):
             cmd = ['mk-sbuild']
             cmd += ['--name=%s' % (self.series.name,)]
             cmd += ['--arch=%s' % (self.architecture.name)]
+            cmd += ['--eatmydata']
             cmd += ['--type=file']
             cmd += mk_sbuild_extra_args
             cmd += [self.series.name]
