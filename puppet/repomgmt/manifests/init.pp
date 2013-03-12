@@ -34,10 +34,13 @@ class repomgmt($user = 'buildd',
              "ubuntu-dev-tools",
              "reprepro",
              "haveged",
-             "vsftpd"]:
+             "vsftpd",
+             "python-dev"]:
     provider => "apt",
     ensure => "installed",
   }
+
+  Package["python-dev"] -> Package<| provider == 'pip' |>
 
   package { ["django-celery",
              "django-tastypie",
