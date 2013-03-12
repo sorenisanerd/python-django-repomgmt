@@ -739,9 +739,9 @@ class BuildNode(models.Model):
             self._run_cmd(textwrap.dedent('''\n
                           cat <<EOF > keygen.param
                           Key-Type: 1
-                          Key-Length: 4096
+                          Key-Length: 2048
                           Subkey-Type: ELG-E
-                          Subkey-Length: 4096
+                          Subkey-Length: 2048
                           Name-Real: %s signing key
                           Expire-Date: 0
                           %%commit
