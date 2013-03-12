@@ -103,9 +103,9 @@ class Repository(models.Model):
         output = utils.run_cmd(['gpg', '--batch', '--gen-key'],
                                 input=textwrap.dedent('''\
                                                Key-Type: 1
-                                               Key-Length: 4096
+                                               Key-Length: 2048
                                                Subkey-Type: ELG-E
-                                               Subkey-Length: 4096
+                                               Subkey-Length: 2048
                                                Name-Real: %s repository
                                                Expire-Date: 0
                                                %%commit''' % self.name))
