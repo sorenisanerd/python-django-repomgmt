@@ -1143,7 +1143,7 @@ class PackageSource(models.Model):
 
             return self.PKG_VERSION_FORMAT % {'epoch': epoch,
                                               'orig_version': orig_version,
-                                              'repository_name': subscription.target_series.repository.name}
+                                              'repository_name': subscription.target_series.repository.name.replace('-','')}
 
         def changelog_entry(self):
             return ('Automated PPA build. Code revision: %s. '
