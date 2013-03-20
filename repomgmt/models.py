@@ -35,7 +35,7 @@ import tty
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.mail import email_admins
+#from django.core.mail import email_admins
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.loader import render_to_string
@@ -1181,7 +1181,7 @@ class PackageSource(models.Model):
                     with open(self.source.failure_log_file(), 'w') as fp:
                         fp.write(e.stdout)
 
-                    email_admins('"bzr bd" failed for %r' % (self,), errmsg)
+#                    email_admins('"bzr bd" failed for %r' % (self,), errmsg)
                     raise
 
                 changes_files = glob(os.path.join(subscription.tmpdir, '*.changes'))
