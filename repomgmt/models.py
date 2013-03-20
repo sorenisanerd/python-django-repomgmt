@@ -15,7 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-from datetime import date
+from datetime import date, datetime
 from glob import glob
 import logging
 import os
@@ -35,6 +35,7 @@ import tty
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.mail import email_admins
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.loader import render_to_string
@@ -1143,7 +1144,7 @@ class PackageSource(models.Model):
 
             return self.PKG_VERSION_FORMAT % {'epoch': epoch,
                                               'orig_version': orig_version,
-                                              'repository_name': subscription.target_series.repository.name.replace('-','')}
+                                              'repository_name': subscription.target_series.repository.name.replace('-', '')}
 
         def changelog_entry(self):
             return ('Automated PPA build. Code revision: %s. '
@@ -1169,13 +1170,18 @@ class PackageSource(models.Model):
 
                 try:
                     utils.run_cmd(['bzr', 'bd', '-S',
-                                   '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
+                                  '--builder=dpkg-buildpackage -nc -k%s' % subscription.target_series.repository.signing_key_id,
                                   ],
                                   cwd=subscription.pkgdir)
                 except CommandFailed, e:
-                    from django.core.mail import email_admins
-                    email_admins('"bzr bd" failed for %r' % (self,),
-                                 '%r failed.\nExit code: %d\nStdout: %s\n\nStderr: %s\n' % (e.cmd, e.returncode, e.stdout, e.stderr))
+                    errmsg = ('%r failed.\nExit code: %d\nStdout: %s\n\n'
+                              'Stderr: %s\n' % (e.cmd, e.returncode,
+                                                e.stdout, e.stderr))
+
+                    with open(self.source.failure_log_file(), 'w') as fp:
+                        fp.write(e.stdout)
+
+                    email_admins('"bzr bd" failed for %r' % (self,), errmsg)
                     raise
 
                 changes_files = glob(os.path.join(subscription.tmpdir, '*.changes'))
@@ -1291,6 +1297,20 @@ class PackageSource(models.Model):
         elif url.startswith('git:'):
             return 'git'
         raise Exception('No idea what to do with %r' % url)
+
+    def failure_log_file(self):
+        return os.path.join(settings.SRC_PKG_BUILD_FAILURE_LOG_DIR, self.source.pk)
+
+    def failure_log_file_contents(self):
+        with open(self.failure_log_file(), 'r') as fp:
+            return fp.read()
+
+    def failure_log_file_exists(self):
+        return os.path.exists(self.failure_log_file())
+
+    def failure_log_file_timestamp(self):
+        if self.failure_log_file_exists():
+            return datetime.utcfromtimestamp(os.stat(self.failure_log_file()).st_mtime)
 
     @classmethod
     def lookup_revision(cls, url):

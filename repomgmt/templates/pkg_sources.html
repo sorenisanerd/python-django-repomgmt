@@ -17,4 +17,10 @@
   </tr>
 {% endfor %}
 </table>
+{% if pkg_source.failure_log_file_exists %}
+<p>Log from most recent failure ({{ pkg_source.failure_log_file_timestamp|naturaltime }} ({{ pkg_source.failure_log_file_timestamp|date:"Y-m-d H:i:s" }})):</p>
+<pre>
+{{ pkg_source.failure_log_file_contents }}
+</pre>
+{% endif %}
 {% endblock %}
