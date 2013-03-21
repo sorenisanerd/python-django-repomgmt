@@ -29,6 +29,7 @@ from repomgmt import utils, tasks
 from repomgmt.models import Architecture, BuildNode, BuildRecord
 from repomgmt.models import ChrootTarball, Repository, Series
 from repomgmt.models import UbuntuSeries, PackageSource, Subscription
+from repomgmt.models import PackageSourceBuildProblem
 
 
 class NewArchitectureForm(ModelForm):
@@ -109,8 +110,16 @@ def pkg_sources_list(request):
             else:
                 return new_pkg_source_form(request)
 
+    latest_problems = PackageSourceBuildProblem.objects.order_by('-timestamp')[:10]
     return render(request, 'pkg_sources.html',
-                          {'pkg_sources': PackageSource.objects.all()})
+                          {'pkg_sources': PackageSource.objects.all(),
+                           'latest_problems': latest_problems})
+
+
+def problem_detail(request, problem_id):
+    problem = PackageSourceBuildProblem.objects.get(id=problem_id)
+    return render(request, 'pkg_src_build_problem.html',
+                           {'problem': problem})
 
 
 def architecture_list(request):

@@ -1035,6 +1035,26 @@ class TarballCacheEntry(models.Model):
 
         shutil.copy(filename, self.filepath())
 
+class PackageSourceBuildProblem(models.Model):
+    name = models.CharField(max_length=200)
+    code_url = models.CharField(max_length=200)
+    packaging_url = models.CharField(max_length=200)
+    code_rev = models.CharField(max_length=200)
+    pkg_rev = models.CharField(max_length=200)
+    flavor = models.CharField(max_length=200)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def save_log(self, contents):
+        with open(self.log_file(), 'w') as fp:
+            return fp.write(contents)
+
+    def log_file(self):
+        return os.path.join(settings.SRC_PKG_BUILD_FAILURE_LOG_DIR, self.pk)
+
+    def log_file_contents(self):
+        with open(self.log_file(), 'r') as fp:
+            return fp.read()
+
 
 class PackageSource(models.Model):
     OPENSTACK = 'OpenStack'
@@ -1177,9 +1197,14 @@ class PackageSource(models.Model):
                     errmsg = ('%r failed.\nExit code: %d\nStdout: %s\n\n'
                               'Stderr: %s\n' % (e.cmd, e.returncode,
                                                 e.stdout, e.stderr))
-
-                    with open(self.source.failure_log_file(), 'w') as fp:
-                        fp.write(e.stdout)
+                    psbp = PackageSourceBuildProblem(name=self.source.name,
+                                                     code_url=self.source.code_url,
+                                                     packaging_url=self.source.packaging_url,
+                                                     code_rev=self.code_revision,
+                                                     pkg_rev=self.pkg_revision,
+                                                     flavor=self.source.flavor)
+                    psbp.save()
+                    psbp.save_log(errmsg)
 
 #                    email_admins('"bzr bd" failed for %r' % (self,), errmsg)
                     raise
@@ -1297,20 +1322,6 @@ class PackageSource(models.Model):
         elif url.startswith('git:'):
             return 'git'
         raise Exception('No idea what to do with %r' % url)
-
-    def failure_log_file(self):
-        return os.path.join(settings.SRC_PKG_BUILD_FAILURE_LOG_DIR, self.source.pk)
-
-    def failure_log_file_contents(self):
-        with open(self.failure_log_file(), 'r') as fp:
-            return fp.read()
-
-    def failure_log_file_exists(self):
-        return os.path.exists(self.failure_log_file())
-
-    def failure_log_file_timestamp(self):
-        if self.failure_log_file_exists():
-            return datetime.utcfromtimestamp(os.stat(self.failure_log_file()).st_mtime)
 
     @classmethod
     def lookup_revision(cls, url):

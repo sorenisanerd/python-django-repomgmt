@@ -2,7 +2,20 @@
 {% load humanize %}
 {% block content %}
 <p>These are the code sources we poll to generate source packages which are in turn uploaded to an APT repository.<a href="{% url new_pkg_source_form %}" class="btn pull-right">Create new</a></p>
-</p>
+<p>Recent source package build failures:</p>
+<table class="table table-striped">
+  <tr>
+    <th>Name</th>
+    <th>When?</th>
+  </tr>
+{% for problem in latest_problems %}
+  <tr>
+    <td>{{ problem.name }}</td>
+    <td>{{ problem.timestamp|naturaltime }} ({{ problem.timestamp|date:"Y-m-d H:i:s" }})</td>
+  </tr>
+{% endfor %}
+</table>
+
 <table class="table table-striped">
   <tr>
     <th>Name</th>
@@ -17,10 +30,4 @@
   </tr>
 {% endfor %}
 </table>
-{% if pkg_source.failure_log_file_exists %}
-<p>Log from most recent failure ({{ pkg_source.failure_log_file_timestamp|naturaltime }} ({{ pkg_source.failure_log_file_timestamp|date:"Y-m-d H:i:s" }})):</p>
-<pre>
-{{ pkg_source.failure_log_file_contents }}
-</pre>
-{% endif %}
 {% endblock %}
