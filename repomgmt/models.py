@@ -15,7 +15,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-from datetime import date, datetime
 from glob import glob
 import logging
 import os
@@ -1049,7 +1048,7 @@ class PackageSourceBuildProblem(models.Model):
             return fp.write(contents)
 
     def log_file(self):
-        return os.path.join(settings.SRC_PKG_BUILD_FAILURE_LOG_DIR, self.pk)
+        return os.path.join(settings.SRC_PKG_BUILD_FAILURE_LOG_DIR, str(self.pk))
 
     def log_file_contents(self):
         with open(self.log_file(), 'r') as fp:
