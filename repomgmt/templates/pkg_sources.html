@@ -10,7 +10,7 @@
   </tr>
 {% for problem in latest_problems %}
   <tr>
-    <td>{{ problem.name }}</td>
+    <td><a href="{% url pkg_src_build_problem_detail problem_id=problem.id %}">{{ problem.name }}</a></td>
     <td>{{ problem.timestamp|naturaltime }} ({{ problem.timestamp|date:"Y-m-d H:i:s" }})</td>
   </tr>
 {% endfor %}

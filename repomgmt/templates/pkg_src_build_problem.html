@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<table class="table table-striped">
+  <tr>
+    <th>Package Source Name</th>
+    <td>{{ problem.name }}</td>
+  </tr>
+</table>
+<p><pre>{{ problem.log_file_contents }}</pre></p>
+{% endblock %}

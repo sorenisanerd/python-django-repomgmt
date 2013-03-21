@@ -37,7 +37,7 @@ urlpatterns = patterns('',
                               name='pkg_sources_list'),
     url(r'^packagesources/new/$', 'repomgmt.views.new_pkg_source_form',
                               name='new_pkg_source_form'),
-    url(r'^packagesourcebuildproblems/$', 'repomgmt.views.problem_detail',
+    url(r'^packagesourcebuildproblems/(?P<problem_id>\w+)/$', 'repomgmt.views.problem_detail',
                               name='pkg_src_build_problem_detail'),
 
     # Subscriptions
