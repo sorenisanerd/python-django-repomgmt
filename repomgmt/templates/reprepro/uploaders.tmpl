@@ -3,7 +3,7 @@ allow not architectures 'source' by group builders
 
 group uploaders add {{ repository.signing_key_id }}
 {% for uploader in repository.uploaders.all %}{% for key in uploader.uploaderkey_set.all %}
-group uploaders add {{ key.key_id }}
+group uploaders add {{ key.key_id }}+
 {% endfor %}{% endfor %}
 {% for builder in repository.build_nodes %}{% if builder.signing_key_id %}group builders add {{ builder.signing_key_id }}{% endif %}
 {% endfor %}
