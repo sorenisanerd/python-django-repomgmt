@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -23,6 +24,7 @@ from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 
 
 from repomgmt import utils, tasks
@@ -110,7 +112,8 @@ def pkg_sources_list(request):
             else:
                 return new_pkg_source_form(request)
 
-    latest_problems = PackageSourceBuildProblem.objects.order_by('-timestamp')[:10]
+    t = timezone.now() - datetime.timedelta(hours=1)
+    latest_problems = PackageSourceBuildProblem.objects.filter(timestamp__gte=t).order_by('-timestamp')
     return render(request, 'pkg_sources.html',
                           {'pkg_sources': PackageSource.objects.all(),
                            'latest_problems': latest_problems})

@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block content %}
 <p>These are the code sources we poll to generate source packages which are in turn uploaded to an APT repository.<a href="{% url new_pkg_source_form %}" class="btn pull-right">Create new</a></p>
-<p>Recent source package build failures:</p>
+<p>Package build failures in the last hour:</p>
 <table class="table table-striped">
   <tr>
     <th>Name</th>
