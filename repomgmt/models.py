@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 from glob import glob
+from datetime import date
 import logging
 import os
 import os.path
