@@ -159,6 +159,12 @@ class Repository(models.Model):
         self.create_key()
         return super(Repository, self).save(*args, **kwargs)
 
+    def can_modify(self, user):
+        if user.is_superuser:
+            return True
+        if user in self.uploaders.filter(id=user.id):
+            return True
+        return False
 
 class UploaderKey(models.Model):
     key_id = models.CharField(max_length=200, primary_key=True)
@@ -262,6 +268,9 @@ class Series(models.Model):
                     subscription.save()
 
             self.update()
+
+    def can_modify(self, user):
+        return self.repository.can_modify(user)
 
     def freeze(self):
         self.state = Series.FROZEN
@@ -1471,8 +1480,15 @@ class PackageSource(models.Model):
             utils.run_cmd(['git', 'reset', '--hard', revision], cwd=destdir)
             utils.run_cmd(['git', 'clean', '-dfx'], cwd=destdir)
 
+    def can_modify(self, user):
+        return all(x.can_modify(user) for x in self.subscription_set.all())
+
 
 class Subscription(models.Model):
     source = models.ForeignKey(PackageSource)
     target_series = models.ForeignKey(Series)
     counter = models.IntegerField()
+
+    def can_modify(self, user):
+        return self.target_series.can_modify(user)
+

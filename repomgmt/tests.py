@@ -20,10 +20,11 @@ import mock
 import textwrap
 from StringIO import StringIO
 
+from django.contrib.auth.models import User
 from django.test import TestCase, client
 from django.test.utils import override_settings
 from repomgmt.models import Cloud, BuildNode, BuildRecord, KeyPair, Repository
-from repomgmt.models import Series
+from repomgmt.models import Series, UploaderKey, PackageSource, Subscription
 
 
 class CloudTests(TestCase):
@@ -318,3 +319,99 @@ class UrlMatchingTests(TestCase):
             c = client.Client()
             response = c.get('/repositories/%s/key/' % (repo.name,))
             self.assertEquals(response.status_code, 200)
+
+class PermissionsTests(TestCase):
+    def setUp(self):
+        self._create_users()
+        super(PermissionsTests, self).setUp()
+
+    def _create_users(self):
+        self.user1 = User(username='user1')
+        self.user1.save()
+
+        self.user2 = User(username='user2')
+        self.user2.save()
+
+        self.user3 = User(username='user3')
+        self.user3.save()
+
+        self.superuser = User(username='superuser')
+        self.superuser.is_superuser = True
+        self.superuser.save()
+
+    def _test_dump(self):
+        for x in Cloud, BuildNode, BuildRecord, KeyPair, Repository, User, UploaderKey:
+            print x.objects.all()
+
+    def test_repo_perm(self):
+        repo = Repository(name='repo1')
+        repo.save()
+        repo.uploaders.add(self.user1)
+
+        self.assertTrue(repo.can_modify(self.user1), 'User1 cannot modify repository')
+        self.assertFalse(repo.can_modify(self.user2), 'User2 can modify repository')
+        self.assertTrue(repo.can_modify(self.superuser), 'Super user cannot modify repository')
+
+    def test_series_perm(self):
+        repo = Repository(name='repo1')
+        repo.save()
+        repo.uploaders.add(self.user1)
+        repo.save()
+
+        series = Series(name='series1', base_ubuntu_series_id='precise', repository=repo)
+        series.save()
+
+        self.assertTrue(series.can_modify(self.user1), 'User1 cannot modify repository')
+        self.assertFalse(series.can_modify(self.user2), 'User2 can modify repository')
+        self.assertTrue(series.can_modify(self.superuser), 'Super user cannot modify repository')
+
+    def test_subscription_perm(self):
+        repo = Repository(name='repo1')
+        repo.save()
+        repo.uploaders.add(self.user1)
+        repo.save()
+
+        series = Series(name='series1', base_ubuntu_series_id='precise', repository=repo)
+        series.save()
+
+        pkg_src = PackageSource(code_url='scheme://foo/bar', packaging_url='scheme://foo/bar',
+                                flavor='OpenStack')
+        pkg_src.save()
+
+        sub = Subscription(target_series=series, source=pkg_src, counter=1)
+        sub.save()
+        self.assertTrue(sub.can_modify(self.user1), 'User1 cannot modify repository')
+        self.assertFalse(sub.can_modify(self.user2), 'User2 can modify repository')
+        self.assertTrue(sub.can_modify(self.superuser), 'Super user cannot modify repository')
+
+    def test_pkg_src_perm(self):
+        repo1 = Repository(name='repo1')
+        repo1.save()
+        repo1.uploaders.add(self.user1)
+        repo1.uploaders.add(self.user3)
+        repo1.save()
+
+        repo2 = Repository(name='repo2')
+        repo2.save()
+        repo2.uploaders.add(self.user2)
+        repo2.uploaders.add(self.user3)
+        repo2.save()
+
+        series1 = Series(name='series1', base_ubuntu_series_id='precise', repository=repo1)
+        series1.save()
+
+        series2 = Series(name='series2', base_ubuntu_series_id='precise', repository=repo2)
+        series2.save()
+
+        pkg_src = PackageSource(code_url='scheme://foo/bar', packaging_url='scheme://foo/bar',
+                                flavor='OpenStack')
+        pkg_src.save()
+
+        sub1 = Subscription(target_series=series1, source=pkg_src, counter=1)
+        sub1.save()
+        sub2 = Subscription(target_series=series2, source=pkg_src, counter=1)
+        sub2.save()
+        self.assertFalse(pkg_src.can_modify(self.user1), 'User1 can modify repository')
+        self.assertFalse(pkg_src.can_modify(self.user2), 'User2 can modify repository')
+        self.assertTrue(pkg_src.can_modify(self.user3), 'User3 cannot modify repository')
+        self.assertTrue(pkg_src.can_modify(self.superuser), 'Super user cannot modify repository')

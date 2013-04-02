@@ -2,7 +2,7 @@ import os
 import random
 import string
 
-DEBUG = False
+DEBUG = True
 
 DATABASES = {
   'default': {
