@@ -15,6 +15,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+import textwrap
+
 packages = [('folsom-proposed', 'main', 'i386', 'cinder-api', '2012.2.1~+cisco-folsom1260-53'),
             ('folsom-proposed', 'main', 'i386', 'cinder-common', '2012.2.1~+cisco-folsom1260-53'),
             ('folsom-proposed', 'main', 'amd64', 'cinder-api', '2012.2.1~+cisco-folsom1260-53'),
@@ -30,7 +32,21 @@ def run_cmd(cmd, input=None):
     if cmd[0] == 'sbuild-update':
         return ''
     if cmd[0] == 'gpg':
-        return ''
+        if cmd[1] == '--batch' and cmd[2] == '--gen-key':
+            return 'gpg: key D58FDBBA marked as ultimately trusted'
+        elif cmd[1:5] == ['-a', '--export-options', 'export-clean', '--export']:
+            return textwrap.dedent('''\
+               -----BEGIN PGP PUBLIC KEY BLOCK-----
+               Version: GnuPG v1.4.12 (GNU/Linux)
+               
+               mQINBFFMZjUBEADLDDUf3ERgeHUZXSJVlPEVRbciqinEiQInflL1Lcg+5AkPtFzt
+               dImXFHds9hI20zwCMcRc0xD3G8ufd8feGSqxZMiZmVClY2m06Dd2nq3EYVEo/qx1
+               I4LtubvLiWwddUgPHEYoQXvD3Q==
+               =/Xyq
+               -----END PGP PUBLIC KEY BLOCK-----
+               ''')
+
+
     if cmd[0] == 'sudo' and cmd[1] == 'sed':
         return ''
     if cmd[0] == 'schroot':
@@ -107,6 +123,8 @@ def run_cmd(cmd, input=None):
                     continue
                 out += '%s|%s|%s: %s %s\n' % (d, s, a, p, v)
             return out
+        elif subcmd == 'export':
+            return ''
         elif subcmd == 'pull':
             target = distro
             if distro.endswith('-proposed'):
