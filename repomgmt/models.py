@@ -129,10 +129,12 @@ class Repository(models.Model):
         basedir = os.path.normpath(os.path.join(settings_module_dir,
                                                 os.pardir))
 
-        for d in [settings.BASE_PUBLIC_REPO_DIR,
-                  confdir, self.reprepro_incomingdir]:
+        for d, setgid in [(settings.BASE_PUBLIC_REPO_DIR, False),
+                          (confdir, False), (self.reprepro_incomingdir, True)]:
             if not os.path.exists(d):
                 os.makedirs(d)
+                if setgid:
+                    os.chmod(d, 02775)
 
         for f in ['distributions', 'incoming', 'options', 'pulls',
                   'uploaders', 'create-build-records.sh', 'dput.cf',
