@@ -64,6 +64,10 @@ class Repository(models.Model):
     class Meta:
         verbose_name_plural = "repositories"
 
+    @classmethod
+    def allow_unprivileged_creation(cls):
+        return True
+
     def __unicode__(self):
         return self.name
 
@@ -162,6 +166,15 @@ class Repository(models.Model):
         return super(Repository, self).save(*args, **kwargs)
 
     def can_modify(self, user):
+        # A side effect of using the name as the primary key is that
+        # this check isn't super useful
+        if self.pk is None:
+            return True
+
+        # ..instead we need to resort to this :(
+        if self.__class__.objects.filter(pk=self.pk).count() == 0:
+            return True
+
         if user.is_superuser:
             return True
         if user in self.uploaders.filter(id=user.id):
@@ -272,6 +285,8 @@ class Series(models.Model):
             self.update()
 
     def can_modify(self, user):
+        if self.repository_id is None:
+            return True
         return self.repository.can_modify(user)
 
     def freeze(self):

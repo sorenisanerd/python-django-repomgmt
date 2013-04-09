@@ -15,7 +15,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
+from base64 import b64encode
 from contextlib import contextmanager
+import json
 import mock
 import textwrap
 from StringIO import StringIO
@@ -403,8 +405,7 @@ class PermissionsTests(TestCase):
         series2 = Series(name='series2', base_ubuntu_series_id='precise', repository=repo2)
         series2.save()
 
-        pkg_src = PackageSource(code_url='scheme://foo/bar', packaging_url='scheme://foo/bar',
-                                flavor='OpenStack')
+        pkg_src = PackageSource(code_url='scheme://foo/bar', packaging_url='scheme://foo/bar', flavor='OpenStack')
         pkg_src.save()
 
         sub1 = Subscription(target_series=series1, source=pkg_src, counter=1)
@@ -415,3 +416,98 @@ class PermissionsTests(TestCase):
         self.assertFalse(pkg_src.can_modify(self.user2), 'User2 can modify repository')
         self.assertTrue(pkg_src.can_modify(self.user3), 'User3 cannot modify repository')
         self.assertTrue(pkg_src.can_modify(self.superuser), 'Super user cannot modify repository')
+
+class APIPermissionsTest(TestCase):
+    def setUp(self):
+        self._create_users()
+        super(APIPermissionsTest, self).setUp()
+
+    def _get_client(self, username):
+        class Client(object):
+            def __init__(self, username):
+                self.client = client.Client(HTTP_AUTHORIZATION=('Basic ' + b64encode(('%s:%s' % (username, 'password')))))
+
+            def post(self, uri, data):
+                return self.client.post(uri, json.dumps(data), content_type='application/json')
+
+            def delete(self, uri):
+                return self.client.delete(uri)
+
+        return Client(username)
+
+    def _create_users(self):
+        self.user1 = User(username='user1')
+        self.user1.set_password('password')
+        self.user1.save()
+
+        self.user2 = User(username='user2')
+        self.user2.set_password('password')
+        self.user2.save()
+
+        self.superuser = User(username='superuser')
+        self.superuser.set_password('password')
+        self.superuser.is_superuser = True
+        self.superuser.save()
+
+    def test_superuser_can_create_architecture(self):
+        c = self._get_client('superuser')
+        response = c.post('/api/v1/architecture/', {'name': 'aarch64'})
+        self.assertEquals(response.status_code, 201)
+
+    def test_regular_user_cannot_create_architecture(self):
+        c = self._get_client('user1')
+        response = c.post('/api/v1/architecture/', {'name': 'aarch64'})
+        self.assertEquals(response.status_code, 401)
+
+    def test_regular_user_can_create_repository(self):
+        c = self._get_client('user1')
+        response = c.post('/api/v1/repository/', {'name': 'testuserrepo'})
+        self.assertEquals(response.status_code, 201)
+
+    def test_superuser_can_create_repository(self):
+        c = self._get_client('superuser')
+        response = c.post('/api/v1/repository/', {'name': 'testuserrepo'})
+        self.assertEquals(response.status_code, 201)
+
+    def test_user_can_delete_own_repository(self):
+        c = self._get_client('user1')
+        response = c.post('/api/v1/repository/', {'name': 'testuserrepo'})
+        self.assertEquals(response.status_code, 201)
+        response = c.delete('/api/v1/repository/testuserrepo/')
+        self.assertEquals(response.status_code, 204)
+
+    def test_user_cannot_delete_someone_elses_repository(self):
+        c = self._get_client('user1')
+        response = c.post('/api/v1/repository/', {'name': 'testuserrepo'})
+        self.assertEquals(response.status_code, 201)
+        c = self._get_client('user2')
+        response = c.delete('/api/v1/repository/testuserrepo/')
+        self.assertEquals(response.status_code, 401)
+
+    def test_user_can_create_series_on_own_repository(self):
+        c = self._get_client('user1')
+        response = c.post('/api/v1/repository/', {'name': 'testuserrepo'})
+        self.assertEquals(response.status_code, 201)
+        location = response['Location']
+        repouri = location[location.index('/api/v1'):]
+        response = c.post('/api/v1/series/', {'name': 'series1',
+                                              'repository': repouri,
+                                              'base_ubuntu_series': 'precise',
+                                              'state': 1,
+                                              'subscriptions': []})
+        self.assertEquals(response.status_code, 201)
+
+    def test_user_cannot_create_series_on_someone_elses_repository(self):
+        c = self._get_client('user1')
+        response = c.post('/api/v1/repository/', {'name': 'testuserrepo'})
+        self.assertEquals(response.status_code, 201)
+        location = response['Location']
+        repouri = location[location.index('/api/v1'):]
+        c = self._get_client('user2')
+        response = c.post('/api/v1/series/', {'name': 'series1',
+                                              'repository': repouri,
+                                              'base_ubuntu_series': 'precise',
+                                              'state': 1,
+                                              'subscriptions': []})
+        self.assertEquals(response.status_code, 401)
+

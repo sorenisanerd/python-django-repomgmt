@@ -31,6 +31,7 @@ from tastypie.resources import ModelResource
 from repomgmt.models import Architecture, Repository, PackageSource, Series
 from repomgmt.models import Subscription, UbuntuSeries
 from tastypie.serializers import Serializer
+from tastypie.exceptions import Unauthorized
 
 api = Api(api_name='v1')
 
@@ -86,6 +87,79 @@ class MultiAuthentication(object):
         except AttributeError:
             return 'nouser'
 
+
+class DjangoAuthorizationWithObjLevelPermissions(DjangoAuthorization):
+    def create_detail(self, object_list, bundle):
+        klass = self.base_checks(bundle.request, bundle.obj.__class__)
+
+        if klass is False:
+            raise Unauthorized("You are not allowed to access that resource.")
+
+        permission = '%s.add_%s' % (klass._meta.app_label, klass._meta.module_name)
+
+        if not bundle.request.user.has_perm(permission, bundle.obj):
+            raise Unauthorized("You are not allowed to access that resource.")
+
+        return True
+
+    def update_list(self, object_list, bundle):
+        klass = self.base_checks(bundle.request, object_list.model)
+
+        if klass is False:
+            return []
+
+        permission = '%s.change_%s' % (klass._meta.app_label, klass._meta.module_name)
+        if not all(bundle.request.user.has_perm(permission, obj) for obj in object_list):
+            return []
+
+        return object_list
+
+    def update_detail(self, object_list, bundle):
+        klass = self.base_checks(bundle.request, bundle.obj.__class__)
+
+        if klass is False:
+            raise Unauthorized("You are not allowed to access that resource.")
+
+        permission = '%s.change_%s' % (klass._meta.app_label, klass._meta.module_name)
+
+        if not bundle.request.user.has_perm(permission, bundle.obj):
+            raise Unauthorized("You are not allowed to access that resource.")
+
+        return True
+
+    def delete_list(self, object_list, bundle):
+        klass = self.base_checks(bundle.request, object_list.model)
+
+        if klass is False:
+            return []
+
+        permission = '%s.delete_%s' % (klass._meta.app_label, klass._meta.module_name)
+
+        if not all(bundle.request.user.has_perm(permission, obj) for obj in object_list):
+            return []
+
+        return object_list
+
+    def delete_detail(self, object_list, bundle):
+        klass = self.base_checks(bundle.request, bundle.obj.__class__)
+
+        if klass is False:
+            raise Unauthorized("You are not allowed to access that resource.")
+
+        permission = '%s.delete_%s' % (klass._meta.app_label, klass._meta.module_name)
+
+        if not bundle.request.user.has_perm(permission, bundle.obj):
+            raise Unauthorized("You are not allowed to access that resource.")
+
+        return True
+
+    def _create_detail(self, object_list, bundle):
+        cls = self.base_checks(bundle.request, bundle.obj.__class__)
+        if hasattr(cls, 'allow_unprivileged_creation'):
+            return cls.allow_unprivileged_creation()
+        return super(DjangoAuthorizationWithObjLevelPermissions, self).create_detail(object_list, bundle)
+
+
 class ApiKeyAuthenticationWithHeaderSupport(ApiKeyAuthentication):
     def extract_credentials(self, request):
         if request.META.get('HTTP_AUTHORIZATION') and request.META['HTTP_AUTHORIZATION'].lower().startswith('apikey '):
@@ -108,8 +182,6 @@ class ApiKeyAuthenticationWithHeaderSupport(ApiKeyAuthentication):
         Should return either ``True`` if allowed, ``False`` if not or an
         ``HttpResponse`` if you need something custom.
         """
-        from django.contrib.auth.models import User
-
         try:
             username, api_key = self.extract_credentials(request)
         except ValueError:
@@ -130,7 +202,7 @@ class ArchitectureResource(ModelResource):
         resource_name = 'architecture'
         authentication = MultiAuthentication(BasicAuthentication(),
                                              ApiKeyAuthenticationWithHeaderSupport())
-        authorization = DjangoAuthorization()
+        authorization = DjangoAuthorizationWithObjLevelPermissions()
         serializer = PrettyJSONSerializer()
 
 
@@ -140,7 +212,7 @@ class PackageSourceResource(ModelResource):
         resource_name = 'packagesource'
         authentication = MultiAuthentication(BasicAuthentication(),
                                              ApiKeyAuthenticationWithHeaderSupport())
-        authorization = DjangoAuthorization()
+        authorization = DjangoAuthorizationWithObjLevelPermissions()
         serializer = PrettyJSONSerializer()
         filtering = {'id': ALL_WITH_RELATIONS}
 
@@ -154,10 +226,13 @@ class RepositoryResource(ModelResource):
         resource_name = 'repository'
         authentication = MultiAuthentication(BasicAuthentication(),
                                              ApiKeyAuthenticationWithHeaderSupport())
-        authorization = DjangoAuthorization()
+        authorization = DjangoAuthorizationWithObjLevelPermissions()
         serializer = PrettyJSONSerializer()
         filtering = {'name': ALL_WITH_RELATIONS}
 
+    def hydrate_m2m(self, bundle):
+        bundle.obj.uploaders.add(bundle.request.user)
+        return super(RepositoryResource, self).hydrate_m2m(bundle)
 
 class HttpAccepted(http.HttpResponse):
     status_code = 202
@@ -175,7 +250,7 @@ class SeriesResource(ModelResource):
         resource_name = 'series'
         authentication = MultiAuthentication(BasicAuthentication(),
                                              ApiKeyAuthenticationWithHeaderSupport())
-        authorization = DjangoAuthorization()
+        authorization = DjangoAuthorizationWithObjLevelPermissions()
         serializer = PrettyJSONSerializer()
         filtering = {'repository': ALL_WITH_RELATIONS,
                      'name': ALL_WITH_RELATIONS,
@@ -268,12 +343,11 @@ class SubscriptionResource(ModelResource):
         resource_name = 'subscription'
         authentication = MultiAuthentication(BasicAuthentication(),
                                              ApiKeyAuthenticationWithHeaderSupport())
-        authorization = DjangoAuthorization()
+        authorization = DjangoAuthorizationWithObjLevelPermissions()
         serializer = PrettyJSONSerializer()
         filtering = {'destination_series': ALL_WITH_RELATIONS,
                      'package_source': ALL_WITH_RELATIONS,
                      'id': ALL_WITH_RELATIONS}
-
 
 
 api.register(ArchitectureResource())

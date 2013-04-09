@@ -32,7 +32,12 @@ INSTALLED_APPS = (
 
 TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'
 
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
+                           'repomgmt.auth.MyAuthBackend')
+
+PASSWORD_HASHERS = ('django.contrib.auth.hashers.MD5PasswordHasher',)
 LOGIN_REDIRECT_URL = '/users/me/'
+TIMEZONE = 'UTC'
 
 # repomgmt settings:
 

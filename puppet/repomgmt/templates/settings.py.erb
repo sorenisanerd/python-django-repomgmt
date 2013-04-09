@@ -182,6 +182,11 @@ TESTING=False
 
 LOGIN_REDIRECT_URL = '/users/me/'
 
+ 
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
+                           'repomgmt.auth.MyAuthBackend')
+
+
 <% if @simple %>
 
 <% if @use_ec2_metadata_service %>
