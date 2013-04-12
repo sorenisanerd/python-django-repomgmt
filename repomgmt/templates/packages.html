@@ -20,7 +20,7 @@
     <th>Queued version</th>
   </tr>
 {% for package, version_info in pkg_data.iteritems %}
-  <tr>
+  <tr{% if version_info.stable != version_info.proposed or version_info.queued and version_info.proposed != version_info.queued %} class="error"{% endif %}>
     <td>{{ package }}</td>
     <td>{{ version_info.stable }}</td>
     <td>{{ version_info.proposed }}</td>
