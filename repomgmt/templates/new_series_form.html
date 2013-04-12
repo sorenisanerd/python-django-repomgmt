@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<p>Create a new series</p>
+<h2>Create a new series</h2>
 <form action="{% url series_list repository_name=repository.name %}" method="post">
 <input type="hidden" name="action" value="create" />
 {% csrf_token %}
 {{ form.as_p }}
 <input class="btn" type="submit" value="Create" />
 </form>
+<script type="text/javascript">
+$(function ()  { 
+    $('#id_name').popover({trigger: "focus", title:"A name for your series", content: 'This could be something like "featureX", "bug123455", etc.'});
+    $('#id_numerical_version').popover({trigger: "focus", title:"Numerical version of your series", content: 'If your series are sequential, this is where you can assign version numbers. They are purely informational.'});
+    $('#id_base_ubuntu_series').popover({trigger: "focus", title:"Base Ubuntu series", content: 'Unless you have a compelling reason not to, you should choose the most recent LTS version of Ubuntu.'});
+    $('#id_state').popover({trigger: "focus", title:"Series state", content: "You are probably safe simply leaving this as 'Active Development'"});
+    $('#id_update_from').popover({trigger: "focus",title:"Update From", content: "If you want to base your work on an existing series, specify it here. This is useful if you're creating this series to test a bugfix or a new feature for an existing series. All its packages and subscriptions will be copied to this new series."});
+});  
+</script>
 {% endblock %}
-

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<p>These are the various repositories we maintain.<a href="{% url new_repository_form %}" class="btn pull-right">Create new</a></p>
+<p>These are the various repositories we maintain.{% if user.is_authenticated %}<a href="{% url new_repository_form %}" class="btn pull-right">Create new</a>{% endif %}</p>
 <table class="table table-striped">
   <tr>
     <th>Repository</th>
