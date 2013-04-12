@@ -192,10 +192,12 @@ def package_list(request, repository_name, series_name):
                 pkg_data[pkg_name] = {}
             pkg_data[pkg_name][distribution_name] = pkg_version
 
+    l = [dict(name=pkg_name, **data) for pkg_name, data in pkg_data.iteritems()]
+
     return render(request, 'packages.html',
                           {'series': series,
                            'subscriptions': series.subscription_set.all(),
-                           'pkg_data': pkg_data})
+                           'pkg_data': l})
 
 
 def promote_series(request):
