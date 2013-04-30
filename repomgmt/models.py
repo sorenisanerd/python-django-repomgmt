@@ -1044,7 +1044,7 @@ class BuildNode(models.Model):
 class TarballCacheEntry(models.Model):
     project_name = models.CharField(max_length=200)
     project_version = models.CharField(max_length=200)
-    rev_id = models.CharField(max_length=200, db_index=True)
+    rev_id = models.CharField(max_length=200, db_index=True, unique=True)
 
     def project_tarball_dir(self):
         return os.path.join(settings.TARBALL_DIR, self.project_name)
