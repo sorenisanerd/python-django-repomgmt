@@ -892,6 +892,7 @@ class BuildNode(models.Model):
                 try:
                     srv.add_floating_ip(floating_ip.ip)
                     succeeded = True
+                    break
                 except:
                     pass
                 time.sleep(1)
