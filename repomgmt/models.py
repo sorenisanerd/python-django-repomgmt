@@ -875,6 +875,20 @@ class BuildNode(models.Model):
         logger.info('Creating server %s on cloud %s' % (name, cloud))
         srv = cl.servers.create(name, image, flavor, key_name=keypair.name)
 
+        timeout = time.time() + 120
+        succeeded = False
+        while timeout > time.time():
+            if srv.status == 'BUILD':
+                time.sleep(3)
+                srv = cl.servers.get(srv.id)
+            else:
+                succeeded = True
+                break
+
+        if not succeeded:
+            srv.delete()
+            raise Exception('Failed to launch instance')
+
         if getattr(settings, 'USE_FLOATING_IPS', False):
             logger.info('Grabbing floating ip for server %s on cloud %s' %
                         (name, cloud))
