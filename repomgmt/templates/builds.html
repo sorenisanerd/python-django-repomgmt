@@ -21,6 +21,19 @@
     <dd>The build succeeded, but could not be uploaded from the build node to the master.</dd>
   </dl>
 </p>
+<p class="text-right">
+  <span class="step-links">
+      {% if build_records.has_previous %}
+        <a href="?page={{ build_records.previous_page_number }}"><i class="icon-arrow-left"></i></a>
+      {% endif %}
+      <span class="current">
+           Page {{ build_records.number }} of {{ build_records.paginator.num_pages }}.
+      </span>
+      {% if build_records.has_next %}
+          <a href="?page={{ build_records.next_page_number }}"><i class="icon-arrow-right"></i></a>
+      {% endif %}
+  </span>
+</p>
 <table class="table table-striped">
   <tr>
     <th>Repository</th>

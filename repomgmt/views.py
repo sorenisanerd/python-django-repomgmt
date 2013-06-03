@@ -20,6 +20,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.sites.models import get_current_site
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseRedirect
@@ -250,8 +251,20 @@ def build_detail(request, build_id):
 
 
 def build_list(request):
+    builds = BuildRecord.objects.order_by('-created')
+    paginator = Paginator(builds, 25)
+
+    page = request.GET.get('page')
+    try:
+        builds = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        builds = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        builds = paginator.page(paginator.num_pages)
     return render(request, 'builds.html',
-                          {'build_records': BuildRecord.objects.order_by('-created')})
+                          {'build_records': builds})
 
 
 def tarball_list(request):
