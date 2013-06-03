@@ -54,7 +54,7 @@ class Command(BaseCommand):
         if action != 'add' and action != 'replace':
             return
 
-        if os.environ.get('REPREPRO_CAUSING_COMMAND') != 'processincoming':
+        if os.environ.get('REPREPRO_CAUSING_COMMAND') not in ('processincoming', 'pull'):
             # Only create build record if called by processincoming
             return
 
