@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block content %}
 <p>Tracked upstream packagesin the {{ series.repository.name }} repository, {{ series.name }} series.
-<form action="{% url promote_series %}" method="post">
+<form action="{% url "promote_series" %}" method="post">
   {% csrf_token %}
   <input type="hidden" name="repository" value="{{ series.repository.name }}" />
   <input type="hidden" name="series" value="{{ series.name }}" />

@@ -4,7 +4,7 @@
 <h1>API reference</h1>
 <p>Some core functionality of this system is available over a REST-based API. Functionality is added to the API on an as-needed basis. If you need something exposed in the API, please don't hesitate to get in touch.</p>
 <h3>Authentication</h3>
-<p>The API requires authentication. You can find your API key <a href="{% url this_user %}">here</a>.</p>
+<p>The API requires authentication. You can find your API key <a href="{% url "this_user" %}">here</a>.</p>
 <p>There are a couple of different ways to provide your credentials (supposing your username is "sorhanse" and your api key is "204db7bcfafb12345606b89eb3b9b715b09905c8"):
   <ul>
     <li>As an HTTP header:
@@ -15,7 +15,7 @@ Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8
   </ul>
 </p>
 <h3>Interacting with the API</h3>
-<p>The API can be reached at http://{{ site.domain }}{% url api_v1_top_level "v1" %}.</p>
+<p>The API can be reached at http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}.</p>
 <p>Please refer to <a href="http://django-tastypie.readthedocs.org/en/latest/interacting.html">the tastypie documentation</a> for how to interact with the API (tastypie is the library that drives the API).</p>
 <h4>Special operations</h4>
 <p>In addition to the standard operations offered automatically by tastypie, the Series objects offer an extra feature. Issuing a <code>POST</code> request agsinst a Series object with <code>{"action": "promote"}</code> (or the XML equivalent) will promote all packages from the series's <code>-proposed</code> pocket to the stable pocket.</p>
@@ -29,7 +29,7 @@ curl -v -H "Content-Type: application/json" \
                "sorhanse@cisco.com",
                "name": "sorhanse",
                "series": [] }' \
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}repository/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}repository/'
 </pre>
 Mind you, this may take a while on account of it generating a new GPG key for you, which is a rather expensive thing to do.
 <h3>Deleting a repository</h3>
@@ -37,7 +37,7 @@ Mind you, this may take a while on account of it generating a new GPG key for yo
 curl -v -H "Content-Type: application/json" \
      -X DELETE \
      --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}repository/sorhanse/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}repository/sorhanse/'
 </pre>
 <h3>Creating a series</h3>
 <pre>
@@ -48,7 +48,7 @@ curl -v -H "Content-Type: application/json" \
                "numerical_version": "2012.2",
                "repository": "/api/v1/repository/cisco/",
                "state": "Active development" }' \
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}series/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}series/'
 </pre>
 <h4>Bootstrap from existing series</h4>
 Add a <code>based_on</code> attribute to the data.
@@ -61,7 +61,7 @@ curl -v -H "Content-Type: application/json" \
                "repository": "/api/v1/repository/cisco/",
                "state": "Active development",
                "based_on": "/api/v1/series/cisco/essex"}' \
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}series/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}series/'
 </pre>
 <h3>Creating a new package source</h3>
 <pre>
@@ -72,7 +72,7 @@ curl -v -H "Content-Type: application/json" \
                "flavor": "OpenStack",
                "name": "Sorens Testing Branch",
                "packaging_url": "http://bazaar.launchpad.net/~cisco-openstack/nova/folsom" }' \
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}packagesource/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}packagesource/'
 </pre>
 <h3>Subscribing a Series to the new package source</h3>
 <pre>
@@ -82,7 +82,7 @@ curl -v -H "Content-Type: application/json" \
      --data '{ "package_source": "/api/v1/packagesource/1/",
                "destination_series": "/api/v1/series/sorhanse/folsom/",
                "counter": 1 }' \
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}subscription/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}subscription/'
 </pre>
 <h3>Changing an existing subscriptiong</h3>
 <pre>
@@ -90,7 +90,7 @@ curl -v -H "Content-Type: application/json" \
      -X PATCH \
      --header 'Authorization: ApiKey sorhanse:204db7bcfafb12345606b89eb3b9b715b09905c8' \
      --data '{ "package_source": "/api/v1/packagesource/3/" }'
-     'http://{{ site.domain }}{% url api_v1_top_level "v1" %}subscription/3/'
+     'http://{{ site.domain }}{% url "api_v1_top_level" "v1" %}subscription/3/'
 </pre>
 
 

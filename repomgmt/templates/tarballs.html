@@ -8,7 +8,7 @@
 </div>
 {% endif %}
 <p>These are the bare tarballs used by the builders to performs "clean-room" package builds. This ensures reproducability.</p>
-<form class="form-horizontal" action="{% url tarball_list %}" method="post">
+<form class="form-horizontal" action="{% url "tarball_list" %}" method="post">
 {% csrf_token %}
 <table class="table table-striped">
   <tr>

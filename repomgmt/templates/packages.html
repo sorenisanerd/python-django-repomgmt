@@ -35,7 +35,7 @@
   </tr>
 {% for subscription in subscriptions %}
   <tr>
-    <td>{{ subscription.source.name }} <a href="{% url subscription_edit subscription.id %}"><i class="icon-pencil"></i></a></td>
+    <td>{{ subscription.source.name }} <a href="{% url "subscription_edit" subscription.id %}"><i class="icon-pencil"></i></a></td>
   </tr>
 {% endfor %}
 </table>

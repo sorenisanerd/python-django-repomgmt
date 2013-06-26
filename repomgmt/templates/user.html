@@ -9,7 +9,7 @@
   <dt>Related repositories</dt>
   <dd>
     <ul>{% for repository in userobj.repository_set.all %}
-      <li><a href="{% url series_list repository_name=repository.name %}">{{ repository.name }}</a></li>{% endfor %}
+      <li><a href="{% url "series_list" repository_name=repository.name %}">{{ repository.name }}</a></li>{% endfor %}
     </ul>
   </dd>
   {% if userobj == user %}

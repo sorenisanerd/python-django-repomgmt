@@ -4,9 +4,9 @@
 <h2>Subscription information</h2>
 <dl>
   <dt>Target series</dt>
-  <dd>{{ subscription.target_series }} <a href="{% url subscription_edit subscription.id %}"><i class="icon-pencil"></i></a></dd>
+  <dd>{{ subscription.target_series }} <a href="{% url "subscription_edit" subscription.id %}"><i class="icon-pencil"></i></a></dd>
   <dt>Source</dt>
-  <dd>{{ subscription.source.name }} <a href="{% url subscription_edit subscription.id %}"><i class="icon-pencil"></i></a></dd>
+  <dd>{{ subscription.source.name }} <a href="{% url "subscription_edit" subscription.id %}"><i class="icon-pencil"></i></a></dd>
   <dt>Counter</dt>
   <dd>{{ subscription.counter }}</dd>
 </dl>

@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block content %}
 <p>Create a new repository</p>
-<form action="{% url pkg_sources_list %}" method="post">
+<form action="{% url "pkg_sources_list" %}" method="post">
 <input type="hidden" name="action" value="create" />
 {% csrf_token %}
 {{ form.as_p }}

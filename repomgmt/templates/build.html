@@ -19,15 +19,15 @@
   </tr>
   <tr>
     <th>Repository</th>
-    <td><a href="{% url series_list repository_name=build.series.repository.name %}">{{ build.series.repository.name }}</a></td>
+    <td><a href="{% url "series_list" repository_name=build.series.repository.name %}">{{ build.series.repository.name }}</a></td>
   </tr>
   <tr>
     <th>Series</th>
-    <td><a href="{% url packages_list repository_name=build.series.repository.name series_name=build.series.name %}">{{ build.series.name }}</a></td>
+    <td><a href="{% url "packages_list" repository_name=build.series.repository.name series_name=build.series.name %}">{{ build.series.name }}</a></td>
   </tr>
   <tr>
     <th>Assigned Build Node</th>
-    <td>{% if build.build_node.name %}<a href="{% url builder_detail builder_name=build.build_node.name %}">{{ build.build_node.name }}</a>{% else %}None{% endif %}</td>
+    <td>{% if build.build_node.name %}<a href="{% url "builder_detail" builder_name=build.build_node.name %}">{{ build.build_node.name }}</a>{% else %}None{% endif %}</td>
   </tr>
   <tr>
     <th>Build log</th>

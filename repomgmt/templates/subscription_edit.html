@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block content %}
 <p>Edit subscription</p>
-<form action="{% url subscription_edit subscription_id=subscription.id %}" method="post">
+<form action="{% url "subscription_edit" subscription_id=subscription.id %}" method="post">
 {% csrf_token %}
 {{ form.as_p }}
 <input class="btn" type="submit" value="Save" />

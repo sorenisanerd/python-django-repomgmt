@@ -31,7 +31,7 @@
     <td>{{ node.get_state_display }}</td>
     <td>None</td>
     <td>N/A</td>
-    <td><a href="{% url builder_detail builder_name=node.name %}" class="btn">Details</a></td>
+    <td><a href="{% url "builder_detail" builder_name=node.name %}" class="btn">Details</a></td>
   </tr>
 {% endfor %}
 </table>

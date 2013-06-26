@@ -3,7 +3,7 @@
 {% block content %}
 <p>These are the various architectures we support.
 
-Everything is built in amd64 (x86_64) based virtual machines. The i386 builds are done in a 32 bit chroot (using <code>linux32</code> to mimic a 32 bit kernel as well). Packages that are architecture independent (also known as "Arch: all" packages) are built on i386.<a href="{% url new_architecture_form %}" class="btn pull-right">Create new</a></p>
+Everything is built in amd64 (x86_64) based virtual machines. The i386 builds are done in a 32 bit chroot (using <code>linux32</code> to mimic a 32 bit kernel as well). Packages that are architecture independent (also known as "Arch: all" packages) are built on i386.<a href="{% url "new_architecture_form" %}" class="btn pull-right">Create new</a></p>
 <table class="table table-striped">
   <tr>
     <th>Architecture</th>

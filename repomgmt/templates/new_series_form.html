@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block content %}
 <h2>Create a new series</h2>
-<form action="{% url series_list repository_name=repository.name %}" method="post">
+<form action="{% url "series_list" repository_name=repository.name %}" method="post">
 <input type="hidden" name="action" value="create" />
 {% csrf_token %}
 {{ form.as_p }}

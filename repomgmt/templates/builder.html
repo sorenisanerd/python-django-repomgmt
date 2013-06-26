@@ -11,7 +11,7 @@
   </tr>
   <tr>
     <th>Assigned Build</th>
-    <td>{% if build_node.buildrecord_set.get.id %}<a href="{% url build_detail build_id=build_node.buildrecord_set.get.id %}">{{ build_node.buildrecord_set.get }}{% else %}N/A{% endif %}</a></td>
+    <td>{% if build_node.buildrecord_set.get.id %}<a href="{% url "build_detail" build_id=build_node.buildrecord_set.get.id %}">{{ build_node.buildrecord_set.get }}{% else %}N/A{% endif %}</a></td>
   </tr>
 </table>
 <p><pre>{{ build_node.buildrecord_set.objects.get.log_tail }}</pre></p>

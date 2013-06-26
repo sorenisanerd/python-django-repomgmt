@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
-<p>These are the code sources we poll to generate source packages which are in turn uploaded to an APT repository.<a href="{% url new_pkg_source_form %}" class="btn pull-right">Create new</a></p>
+<p>These are the code sources we poll to generate source packages which are in turn uploaded to an APT repository.<a href="{% url "new_pkg_source_form" %}" class="btn pull-right">Create new</a></p>
 <p>Package build failures in the last hour:</p>
 <table class="table table-striped">
   <tr>
@@ -10,7 +10,7 @@
   </tr>
 {% for problem in latest_problems %}
   <tr>
-    <td><a href="{% url pkg_src_build_problem_detail problem_id=problem.id %}">{{ problem.name }}</a></td>
+    <td><a href="{% url "pkg_src_build_problem_detail" problem_id=problem.id %}">{{ problem.name }}</a></td>
     <td>{{ problem.timestamp|naturaltime }} ({{ problem.timestamp|date:"Y-m-d H:i:s" }})</td>
   </tr>
 {% endfor %}

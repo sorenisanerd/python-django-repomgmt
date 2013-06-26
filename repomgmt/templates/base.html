@@ -63,17 +63,17 @@
           <div class ="well sidebar-nav">
             <ul class="nav nav-list">
               <li class="nav-header">Build infrastructure</li>
-              <li><a href="{% url architecture_list %}">Architectures</a></li>
-              <li><a href="{% url tarball_list %}">Tarballs</a></li>
-              <li><a href="{% url builder_list %}">Build nodes</a></li>
-              <li><a href="{% url build_list %}">Builds</a></li>
+              <li><a href="{% url "architecture_list" %}">Architectures</a></li>
+              <li><a href="{% url "tarball_list" %}">Tarballs</a></li>
+              <li><a href="{% url "builder_list" %}">Build nodes</a></li>
+              <li><a href="{% url "build_list" %}">Builds</a></li>
               <li class="nav-header">APT repository management</li>
-              <li><a href="{% url repository_list %}">APT repositories</a></li>
+              <li><a href="{% url "repository_list" %}">APT repositories</a></li>
               <li class="nav-header">Autobuilding</li>
-              <li><a href="{% url pkg_sources_list %}">Package sources</a></li>
+              <li><a href="{% url "pkg_sources_list" %}">Package sources</a></li>
               <li class="nav-header">Documentation</li>
-              <li><a href="{% url docs_api %}">API</a></li>
-              <li><a href="{% url docs_workflow %}">Workflow</a></li>
+              <li><a href="{% url "docs_api" %}">API</a></li>
+              <li><a href="{% url "docs_workflow" %}">Workflow</a></li>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->

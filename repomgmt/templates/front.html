@@ -21,7 +21,7 @@
   </div>
   <div class="row-fluid">
     <div class="span12">
-      <h2><a href="{% url build_list %}">Recent builds</a></h2>
+      <h2><a href="{% url "build_list" %}">Recent builds</a></h2>
       <table class="table table-condensed">
         <tr>
           <th>Name</th>
@@ -33,19 +33,19 @@
         {% for build in latest_builds %}
         <tr {% if build.state == build.SUCCESFULLY_BUILT %}class="success"{% elif build.state == build.NEEDS_BUILDING %}{% else %}class="warning"{% endif %}>
           <td>
-            <a href="{% url build_detail build_id=build.id %}">{{ build.source_package_name }}</a>
+            <a href="{% url "build_detail" build_id=build.id %}">{{ build.source_package_name }}</a>
           </td>
           <td>
-            <a href="{% url build_detail build_id=build.id %}">{{ build.version }}</a>
+            <a href="{% url "build_detail" build_id=build.id %}">{{ build.version }}</a>
           </td>
           <td>
             {{ build.finished|naturaltime }} ({{ build.finished|date:"Y-m-d H:i:s" }})
           </td>
           <td>
-            <a href="{% url build_detail build_id=build.id %}">{{ build.architecture }}</a>
+            <a href="{% url "build_detail" build_id=build.id %}">{{ build.architecture }}</a>
           </td>
           <td>
-            <a href="{% url packages_list repository_name=build.series.repository.name series_name=build.series.name %}">{{ build.series }}</a>
+            <a href="{% url "packages_list" repository_name=build.series.repository.name series_name=build.series.name %}">{{ build.series }}</a>
           </td>
         </tr>
         {% endfor %}

@@ -52,10 +52,10 @@
     <td>{{ build.version }}</td>
     <td>{{ build.architecture }}</td>
     <td>{{ build.get_state_display }}</td>
-    <td><a href="{% url build_detail build_id=build.id %}" class="btn">Details</a></td>
+    <td><a href="{% url "build_detail" build_id=build.id %}" class="btn">Details</a></td>
     {% if build.allow_rebuild %}
     <td>
-      <form method="post" action="{% url build_detail build_id=build.id %}">
+      <form method="post" action="{% url "build_detail" build_id=build.id %}">
         {% csrf_token %}
         <input type="submit" name="action" value="Rebuild" />
       </form>
