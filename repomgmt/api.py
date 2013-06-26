@@ -42,8 +42,8 @@ class PrettyJSONSerializer(Serializer):
     def to_json(self, data, options=None):
         options = options or {}
         data = self.to_simple(data, options)
-        return simplejson.dumps(data, cls=json.DjangoJSONEncoder,
-                sort_keys=True, ensure_ascii=False, indent=self.json_indent)
+        return json.json.dumps(data, cls=json.DjangoJSONEncoder, sort_keys=True,
+                               ensure_ascii=False, indent=self.json_indent)
 
 
 # Copied from up-to-date tastypie
