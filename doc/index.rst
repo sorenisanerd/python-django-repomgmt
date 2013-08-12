@@ -11,8 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   intro
    model
-
+   autobuild
+   vm
 
 Indices and tables
 ==================
