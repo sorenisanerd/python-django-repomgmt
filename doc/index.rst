@@ -15,6 +15,7 @@ Contents:
    model
    autobuild
    vm
+   commands
 
 Indices and tables
 ==================
