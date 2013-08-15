@@ -16,6 +16,7 @@ Contents:
    autobuild
    vm
    commands
+   troubleshooting
 
 Indices and tables
 ==================
